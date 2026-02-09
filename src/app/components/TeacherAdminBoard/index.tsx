@@ -20,9 +20,11 @@ import {
   Beaker,
   ChartBar,
   UserPlus,
+  FileSpreadsheet,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { SkeletonTeacherAdminBoard } from "@/app/components/Skeleton";
+import ExcelImportModal from "@/app/components/ExcelImportModal";
 
 interface SubjectGroup {
   id: string;
@@ -36,6 +38,7 @@ interface SubjectGroup {
 interface Teacher {
   TEACHER_ID: string;
   NAME: string;
+  PASSWORD: string;
   DEPARTMENT: string;
   SUBJECT: string;
   PHONE: string;
@@ -46,6 +49,7 @@ interface Teacher {
 interface FormData {
   teacherId: string;
   name: string;
+  password: string;
   department: string;
   subject: string;
   phone: string;
@@ -82,9 +86,11 @@ function TeacherAdminBoard() {
   const [showModal, setShowModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     teacherId: "",
     name: "",
+    password: "",
     department: "",
     subject: "",
     phone: "",
@@ -145,6 +151,7 @@ function TeacherAdminBoard() {
       setFormData({
         teacherId: teacher.TEACHER_ID,
         name: teacher.NAME,
+        password: "",
         department: teacher.DEPARTMENT || "",
         subject: teacher.SUBJECT || "",
         phone: teacher.PHONE || "",
@@ -156,6 +163,7 @@ function TeacherAdminBoard() {
       setFormData({
         teacherId: "",
         name: "",
+        password: "",
         department: "",
         subject: "",
         phone: "",
@@ -171,6 +179,15 @@ function TeacherAdminBoard() {
       Swal.fire({
         title: "ข้อมูลไม่ครบ",
         text: "กรุณากรอกรหัสครูและชื่อ",
+        icon: "warning",
+      });
+      return;
+    }
+
+    if (!isEdit && !formData.password) {
+      Swal.fire({
+        title: "ข้อมูลไม่ครบ",
+        text: "กรุณากรอกรหัสผ่าน",
         icon: "warning",
       });
       return;
@@ -252,15 +269,15 @@ function TeacherAdminBoard() {
               <ChartBar size={28} className="text-white" />
             </div>
             <div className="flex flex-col">
-            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
-              Dashboard บริหารครู
-            </h1>
-            <p className="text-xs sm:text-smtext-gray-600">
-            จัดการข้อมูลครูทั้งหมดในระบบ
-          </p>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
+                Dashboard บริหารครู
+              </h1>
+              <p className="text-xs sm:text-smtext-gray-600">
+                จัดการข้อมูลครูทั้งหมดในระบบ
+              </p>
             </div>
           </div>
-          
+
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -356,6 +373,9 @@ function TeacherAdminBoard() {
                   ชื่อ-นามสกุล
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 text-nowrap">
+                  รหัสผ่าน
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 text-nowrap">
                   กลุ่มสาระ
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 text-nowrap">
@@ -393,6 +413,9 @@ function TeacherAdminBoard() {
                             {teacher.NAME}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+                        {teacher.PASSWORD || "-"}
                       </td>
                       <td className="px-6 py-4 text-nowrap">
                         {group ? (
@@ -449,7 +472,7 @@ function TeacherAdminBoard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     ไม่พบข้อมูลครู
                   </td>
                 </tr>
@@ -471,12 +494,12 @@ function TeacherAdminBoard() {
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-md bg-blue-500 flex items-center justify-center text-white font-bold mr-2">
-                        <Users size={20} />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900">
-                         {isEdit ? "แก้ไขข้อมูลครู" : "เพิ่มครูใหม่"}
-                        </h2>
+                  <div className="w-10 h-10 rounded-md bg-blue-500 flex items-center justify-center text-white font-bold mr-2">
+                    <Users size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {isEdit ? "แก้ไขข้อมูลครู" : "เพิ่มครูใหม่"}
+                  </h2>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
@@ -486,7 +509,7 @@ function TeacherAdminBoard() {
                 </button>
               </div>
             </div>
-            <hr className="w-[80%] mx-auto"/>
+            <hr className="w-[80%] mx-auto" />
 
             <div className="p-6 space-y-4">
               <div>
@@ -517,6 +540,23 @@ function TeacherAdminBoard() {
                   }
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="เช่น นายสมชาย ใจดี"
+                />
+              </div>
+
+              {/* Password field */}
+              <div>
+                <label className="flex text-sm font-medium text-gray-700 mb-1">
+                  รหัสผ่าน {!isEdit && <p className="text-red-600 ml-1">*</p>}
+                  {isEdit && <p className="text-gray-400 ml-1 text-xs">(ไม่กรอก = ไม่เปลี่ยน)</p>}
+                </label>
+                <input
+                  type="text"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={isEdit ? "เว้นว่างถ้าไม่ต้องการเปลี่ยน" : "กรอกรหัสผ่าน"}
                 />
               </div>
 
@@ -652,6 +692,25 @@ function TeacherAdminBoard() {
           </div>
         </div>
       )}
+
+      {/* Floating Import Button */}
+      <div className="fixed bottom-6 right-6">
+        <button
+          title="นำเข้าข้อมูลครูจาก Excel"
+          onClick={() => setIsImportModalOpen(true)}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+        >
+          <FileSpreadsheet className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Excel Import Modal */}
+      <ExcelImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        importType="teacher"
+        onSuccess={fetchData}
+      />
     </main>
   );
 }

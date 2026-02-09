@@ -18,7 +18,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
   const [qrData, setQrdata] = useState<QRdata>({ id: "" });
   const [showHoliday, setShowHoliday] = useState<holiday>({ isHoliday: false, name: "" });
 
-  const [manualIdCheckIn, setManualIdCheckIn] = useState<string>("");
+  const [manualIdCheckIn, setManualIdCheckIn] = useState<QRdata>({ id: "" });
   const [emptyField, setEmptyField] = useState<boolean>(false);
 
   const getHoliday = async () => {
@@ -34,7 +34,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
       const req = await fetch("/api/scanAttendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, handler: session?.user?.name }),
+        body: JSON.stringify({ id, handler: session?.user?.username }),
       });
       const res = await req.json();
       if (req.status === 400)
@@ -52,9 +52,9 @@ function AttendanceCheckPage({ session }: { session: any }) {
     }
   };
   useEffect(() => {
-    if (Object.keys(qrData).length > 0 && qrData.id !== "") {
+    if (Object.keys(qrData).length !== 0 && qrData.id !== "") {
       attendance(qrData.id);
-      setQrdata({ id: ""});
+      setQrdata({ id: "" });
     }
   }, [qrData]);
   useEffect(() => {
@@ -63,7 +63,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
 
   const handleManualCheckIn = (e: React.FormEvent) => {
     e.preventDefault();
-    if (manualIdCheckIn.trim() === "") {
+    if (manualIdCheckIn.id.trim() === "") {
       Swal.fire({
         text: "กรุณากรอกเลขประจำตัวนักเรียน",
         icon: "warning",
@@ -75,7 +75,7 @@ function AttendanceCheckPage({ session }: { session: any }) {
     } else {
       Swal.fire({
         title: "ยืนยันการเช็คชื่อ?",
-        text: `เลขประจำตัวนักเรียน: ${manualIdCheckIn}`,
+        text: `เลขประจำตัวนักเรียน: ${manualIdCheckIn.id}`,
         icon: "question",
         showCancelButton: true,
         confirmButtonText: "ยืนยัน",
@@ -84,8 +84,8 @@ function AttendanceCheckPage({ session }: { session: any }) {
         cancelButtonText: "ยกเลิก",
       }).then((result) => {
         if (result.isConfirmed) {
-          attendance(manualIdCheckIn);
-          setManualIdCheckIn("");
+          attendance(manualIdCheckIn.id);
+          setManualIdCheckIn({ id: "" });
           setEmptyField(false);
         }
       });
@@ -105,12 +105,12 @@ function AttendanceCheckPage({ session }: { session: any }) {
         </div>
         {showHoliday ? (
           showHoliday.isHoliday && (
-              <p className="text-xs text-red-500 text-center mb-4">
-            * {showHoliday.name} ไม่ต้องเช็คชื่อ *
-          </p>
+            <p className="text-xs text-red-500 text-center mb-4">
+              * {showHoliday.name} ไม่ต้องเช็คชื่อ *
+            </p>
           )
-          
-        ): null}
+
+        ) : null}
       </div>
 
       <div className="text-center">
@@ -131,18 +131,16 @@ function AttendanceCheckPage({ session }: { session: any }) {
             <label className="text-xs">เลขประจำตัวนักเรียน</label>
             <div className="relative w-full">
               <IdCard
-                className={`absolute z-10 left-2 top-1/2 transform -translate-y-1/2 text-blue-500 ${
-                  emptyField && "text-rose-500"
-                }`}
+                className={`absolute z-10 left-2 top-1/2 transform -translate-y-1/2 text-blue-500 ${emptyField && "text-rose-500"
+                  }`}
               />
               <input
                 type="number"
-                className={`relative outline-none bg-white px-3 py-2 ring-2 ring-blue-200 focus:ring-blue-400 rounded-md pl-10 w-full sm:w-fit mt-3/2 ${
-                  emptyField && "ring-rose-500"
-                } placeholder:text-slate-300`}
-                value={manualIdCheckIn}
+                className={`relative outline-none bg-white px-3 py-2 ring-2 ring-blue-200 focus:ring-blue-400 rounded-md pl-10 w-full sm:w-fit mt-3/2 ${emptyField && "ring-rose-500"
+                  } placeholder:text-slate-300`}
+                value={manualIdCheckIn.id}
                 onChange={(e) => {
-                  setManualIdCheckIn(e.target.value);
+                  setManualIdCheckIn({ id: e.target.value });
                   setEmptyField(false);
                 }}
                 placeholder="1234"

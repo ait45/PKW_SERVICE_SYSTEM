@@ -28,9 +28,9 @@ import EventAttendanceCheck from "@/app/components/EventAttendanceCheck";
 import EventAttendanceTable from "@/app/components/EventAttendanceTable";
 import TeacherAdminBoard from "@/app/components/TeacherAdminBoard";
 import TeacherBoard from "@/app/components/TeacherBoard";
-import LineUserManagement from "@/app/components/LineUserManagement";
 import IssueReportManagement from "@/app/components/IssueReportManagement";
 import PasswordResetManagement from "@/app/components/PasswordResetManagement";
+import BehaviorScore from "@/app/components/BehaviorScore";
 
 function AdminPage() {
   const { data: session, status } = useSession();
@@ -84,9 +84,8 @@ function AdminPage() {
           onCollapseChange={(isCollapsed) => setIsSidebarOpen(!isCollapsed)}
         />
         <main
-          className={`flex-1 py-1 w-full overflow-y-scroll hide-scrollbar duration-300 ${
-            isMobile && isSidebarOpen ? "hidden" : ""
-          }`}
+          className={`flex-1 py-1 w-full overflow-y-scroll hide-scrollbar duration-300 ${isMobile && isSidebarOpen ? "hidden" : ""
+            }`}
         >
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "scan" && <AttendanceCheckPage session={session} />}
@@ -115,9 +114,9 @@ function AdminPage() {
           {currentPage === "event" && <EventManagement session={session} />}
           {currentPage === "eventCheck" && <EventAttendanceCheck session={session} />}
           {currentPage === "eventTable" && <EventAttendanceTable session={session} />}
-          {currentPage === "LineUser" && <LineUserManagement />}
           {currentPage === "messages" && <IssueReportManagement />}
           {currentPage === "forgetPasswordMess" && <PasswordResetManagement />}
+          {currentPage === "behaviorScore" && <BehaviorScore />}
         </main>
       </div>
       <Footer />

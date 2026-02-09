@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { PoolConnection } from "mariadb/*";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 
 const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
@@ -30,7 +30,7 @@ export async function GET(
   try {
     conn = await MariaDBConnection.getConnection();
     const query = `SELECT NAME, STATUS, CREATED_AT FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CREATED_AT) = CURDATE()`;
-    const data = conn.execute(query, [id]);
+    const data = await conn.execute(query, [id]);
     if (!data) {
       return NextResponse.json(
         { error: "Not Found", message: "ไม่พบข้อมูล", code: "NOT FOUND" },
@@ -55,5 +55,7 @@ export async function GET(
       },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }

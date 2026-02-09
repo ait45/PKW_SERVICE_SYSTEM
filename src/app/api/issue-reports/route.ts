@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import IssueReport from "@/models/Mongo.model.IssueReport.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import IssueReport from "@/models/Mongo.model.IssueReport";
 
 // GET - ดึงรายการ Issue Reports
 export async function GET(req: NextRequest) {

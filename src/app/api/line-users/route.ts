@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import LineUser from "@/models/Mongo.model.LineUser.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import LineUser from "@/models/Mongo.model.LineUser";
 
 // GET - ดึงรายการ LINE users ทั้งหมด
 export async function GET(req: NextRequest) {

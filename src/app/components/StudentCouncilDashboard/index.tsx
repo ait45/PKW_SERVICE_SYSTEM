@@ -26,19 +26,19 @@ import AttendanceCheckPage from "../AttendanceCheck";
 import { SkeletonStudentDashboard } from "../Skeleton";
 
 interface UserData {
-  studentId: number;
-  name: string;
-  classes: string;
-  isAdmin: boolean;
-  Number: number;
-  joinDays: number;
-  leaveDays: number;
-  lateDays: number;
-  absentDays: number;
-  behaviorScore: number;
-  data_attendance: {
-    status: string;
-    createdAt: string;
+  STUDENT_ID: number;
+  NAME: string;
+  CLASSES: string;
+  IS_ADMIN: boolean;
+  NUMBER: number;
+  JOIN_DAYS: number;
+  LEAVE_DAYS: number;
+  LATE_DAYS: number;
+  ABSENT_DAYS: number;
+  BEHAVIOR_SCORE: number;
+  DATA_ATTENDANCE: {
+    STATUS: string;
+    CREATED_AT: string;
   };
 }
 
@@ -87,22 +87,22 @@ const classes = [
 const StudentCouncilDashboard = ({ session }: { session: any }) => {
   const [loading, setLoading] = useState(true);
   const [DataUser, setDataUser] = useState<UserData>({
-    studentId: 0,
-    name: "",
-    classes: "",
-    isAdmin: false,
-    Number: 0,
-    joinDays: 0,
-    leaveDays: 0,
-    lateDays: 0,
-    absentDays: 0,
-    behaviorScore: 0,
-    data_attendance: {
-      status: "",
-      createdAt: "",
+    STUDENT_ID: 0,
+    NAME: "",
+    CLASSES: "",
+    IS_ADMIN: false,
+    NUMBER: 0,
+    JOIN_DAYS: 0,
+    LEAVE_DAYS: 0,
+    LATE_DAYS: 0,
+    ABSENT_DAYS: 0,
+    BEHAVIOR_SCORE: 0,
+    DATA_ATTENDANCE: {
+      STATUS: "",
+      CREATED_AT: "",
     },
   });
-  
+
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -117,22 +117,22 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   const fetchDataUser = async () => {
     try {
       setLoading(true);
-      const req = await fetch(`/api/studentManagement/${session?.id}`);
+      const req = await fetch(`/api/studentManagement/${session?.user?.username}`);
       const data = await req.json();
       setDataUser(data.data);
-      
+
       const req_attendance = await fetch(
         `/api/scanAttendance/${session?.user?.username}`
       );
-      if (req_attendance.status === 204) return;
+      if (req_attendance.status === 404) return;
       const data_attendance_raw = await req_attendance.json();
-      const date = new Date(data_attendance_raw.payload.CREATED_AT);
+      const date = new Date(data_attendance_raw.payload[0].CREATED_AT);
       const time = date.toTimeString().split(" ")[0];
-      const data_attendance = {
-        status: data_attendance_raw.data.STATUS,
-        createdAt: time,
+      const DATA_ATTENDANCE = {
+        STATUS: data_attendance_raw.payload[0].STATUS,
+        CREATED_AT: time,
       };
-      setDataUser((prev) => ({ ...prev, data_attendance }));
+      setDataUser((prev) => ({ ...prev, DATA_ATTENDANCE }));
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
@@ -141,12 +141,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   };
 
   const fetchSchedule = async () => {
-    if (!DataUser.classes) return;
+    if (!DataUser.CLASSES) return;
     try {
       setLoadingSchedule(true);
       const today = new Date().getDay() || 1;
       const res = await fetch(
-        `/api/schedule?classId=${encodeURIComponent(DataUser.classes)}&dayOfWeek=${today}`
+        `/api/schedule?classId=${encodeURIComponent(DataUser.CLASSES)}&dayOfWeek=${today}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -188,10 +188,10 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   }, []);
 
   useEffect(() => {
-    if (DataUser.classes) {
+    if (DataUser.CLASSES) {
       fetchSchedule();
     }
-  }, [DataUser.classes]);
+  }, [DataUser.CLASSES]);
 
   useEffect(() => {
     if (selectedTab === "students") {
@@ -200,14 +200,14 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   }, [selectedTab]);
 
   const filteredStudents = studentList.filter((student) => {
-    const matchesSearch = 
+    const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesClass = classFilter === "ทั้งหมด" || student.classes === classFilter;
     return matchesSearch && matchesClass;
   });
 
-  const totalDays = DataUser.joinDays + DataUser.absentDays + DataUser.lateDays + DataUser.leaveDays || 1;
+  const totalDays = DataUser.JOIN_DAYS + DataUser.ABSENT_DAYS + DataUser.LATE_DAYS + DataUser.LEAVE_DAYS || 1;
 
   if (loading) {
     return <SkeletonStudentDashboard />;
@@ -266,11 +266,10 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     <button
       title={label}
       onClick={() => setSelectedTab(id)}
-      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${
-        selectedTab === id
-          ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
-          : "text-gray-600 hover:bg-white/80 hover:shadow-md"
-      }`}
+      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${selectedTab === id
+        ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
+        : "text-gray-600 hover:bg-white/80 hover:shadow-md"
+        }`}
     >
       <Icon className="w-5 h-5" />
       <span className="hidden md:inline">{label}</span>
@@ -297,7 +296,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     }
   };
 
-  const statusStyles = getStatusStyles(DataUser?.data_attendance?.status);
+  const statusStyles = getStatusStyles(DataUser?.DATA_ATTENDANCE?.STATUS);
   const StatusIcon = statusStyles.icon;
 
   return (
@@ -334,16 +333,16 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               {/* User Info */}
               <div className="hidden sm:block">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                  {DataUser.name || "กำลังโหลด..."}
+                  {DataUser.NAME || "กำลังโหลด..."}
                 </h1>
                 <div className="flex flex-wrap gap-3 mt-1">
                   <span className="inline-flex items-center gap-1 text-sm text-gray-500">
                     <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
-                    {DataUser.studentId || "-"}
+                    {DataUser.STUDENT_ID || "-"}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm text-gray-500">
                     <span className="w-1.5 h-1.5 bg-pink-500 rounded-full" />
-                    {DataUser.classes || "-"}
+                    {DataUser.CLASSES || "-"}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm font-medium text-rose-600">
                     <Users size={14} />
@@ -356,11 +355,11 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               {showDetailProfile && (
                 <div className="sm:hidden absolute left-16 top-20 z-50 animate-fadeIn">
                   <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/20 min-w-[200px]">
-                    <h2 className="font-bold text-gray-900">{DataUser.name}</h2>
+                    <h2 className="font-bold text-gray-900">{DataUser.NAME}</h2>
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <p>รหัส: {DataUser.studentId}</p>
-                      <p>ชั้น: {DataUser.classes}</p>
-                      <p>เลขที่: {DataUser.Number}</p>
+                      <p>รหัส: {DataUser.STUDENT_ID}</p>
+                      <p>ชั้น: {DataUser.CLASSES}</p>
+                      <p>เลขที่: {DataUser.NUMBER}</p>
                       <p className="text-rose-600 font-medium">สภานักเรียน</p>
                     </div>
                   </div>
@@ -384,8 +383,8 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                   <div>
                     <p className="font-semibold text-sm">{statusStyles.text}</p>
                     <p className="text-xs text-white/80">
-                      {DataUser?.data_attendance?.createdAt
-                        ? `เวลา ${DataUser.data_attendance.createdAt}`
+                      {DataUser?.DATA_ATTENDANCE?.CREATED_AT
+                        ? `เวลา ${DataUser.DATA_ATTENDANCE.CREATED_AT}`
                         : "วันนี้"}
                     </p>
                   </div>
@@ -396,7 +395,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
         </div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative top-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Tabs - Added Students tab for council */}
         <div className="flex flex-wrap gap-2 mb-8 p-2 bg-white/50 backdrop-blur-sm rounded-2xl w-fit shadow-lg">
           <TabButton id="overview" label="ภาพรวม" icon={User} />
@@ -425,34 +424,34 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               <AttendanceCard
                 icon={CheckCircle}
                 label="วันที่เข้าร่วม"
-                value={DataUser.joinDays}
+                value={DataUser.JOIN_DAYS}
                 color="#10B981"
                 gradient="bg-gradient-to-br from-emerald-400 to-green-500"
-                percentage={((DataUser.joinDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.JOIN_DAYS / totalDays) * 100).toFixed(0)}
               />
               <AttendanceCard
                 icon={XCircle}
                 label="วันที่ขาด"
-                value={DataUser.absentDays}
+                value={DataUser.ABSENT_DAYS}
                 color="#EF4444"
                 gradient="bg-gradient-to-br from-red-400 to-rose-500"
-                percentage={((DataUser.absentDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.ABSENT_DAYS / totalDays) * 100).toFixed(0)}
               />
               <AttendanceCard
                 icon={Clock}
                 label="วันที่มาสาย"
-                value={DataUser.lateDays}
+                value={DataUser.LATE_DAYS}
                 color="#F59E0B"
                 gradient="bg-gradient-to-br from-amber-400 to-orange-500"
-                percentage={((DataUser.lateDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.LATE_DAYS / totalDays) * 100).toFixed(0)}
               />
               <AttendanceCard
                 icon={Pause}
                 label="วันที่ลา"
-                value={DataUser.leaveDays}
+                value={DataUser.LEAVE_DAYS}
                 color="#EC4899"
                 gradient="bg-gradient-to-br from-pink-400 to-rose-500"
-                percentage={((DataUser.leaveDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.LEAVE_DAYS / totalDays) * 100).toFixed(0)}
               />
             </div>
 
@@ -470,44 +469,41 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     </h3>
                   </div>
                   <TrendingUp
-                    className={`w-5 h-5 ${
-                      DataUser.behaviorScore >= 80
-                        ? "text-emerald-500"
-                        : "text-amber-500"
-                    }`}
+                    className={`w-5 h-5 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : "text-amber-500"
+                      }`}
                   />
                 </div>
 
                 <div className="text-center">
                   <div
-                    className={`text-6xl font-bold mb-4 ${
-                      DataUser.behaviorScore >= 80
-                        ? "text-emerald-500"
-                        : DataUser.behaviorScore >= 60
+                    className={`text-6xl font-bold mb-4 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : DataUser.BEHAVIOR_SCORE >= 60
                         ? "text-amber-500"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
-                    {DataUser.behaviorScore}
+                    {DataUser.BEHAVIOR_SCORE}
                   </div>
                   <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
-                        DataUser.behaviorScore >= 80
-                          ? "bg-linear-to-r from-emerald-400 to-green-500"
-                          : DataUser.behaviorScore >= 60
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${DataUser.BEHAVIOR_SCORE >= 80
+                        ? "bg-linear-to-r from-emerald-400 to-green-500"
+                        : DataUser.BEHAVIOR_SCORE >= 60
                           ? "bg-linear-to-r from-amber-400 to-orange-500"
                           : "bg-linear-to-r from-red-400 to-rose-500"
-                      }`}
-                      style={{ width: `${DataUser.behaviorScore}%` }}
+                        }`}
+                      style={{ width: `${DataUser.BEHAVIOR_SCORE}%` }}
                     />
                   </div>
                   <p className="text-sm text-gray-500 mt-3">
-                    {DataUser.behaviorScore >= 80
+                    {DataUser.BEHAVIOR_SCORE >= 80
                       ? "🌟 ความประพฤติดีมาก"
-                      : DataUser.behaviorScore >= 60
-                      ? "👍 ความประพฤติดี"
-                      : "⚠️ ต้องปรับปรุง"}
+                      : DataUser.BEHAVIOR_SCORE >= 60
+                        ? "👍 ความประพฤติดี"
+                        : "⚠️ ต้องปรับปรุง"}
                   </p>
                 </div>
               </div>
@@ -587,10 +583,10 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                 {[
                   { label: "วันเรียนทั้งหมด", value: totalDays, color: "blue" },
-                  { label: "เข้าร่วม", value: DataUser.joinDays, color: "emerald" },
-                  { label: "ขาด", value: DataUser.absentDays, color: "red" },
-                  { label: "สาย", value: DataUser.lateDays, color: "amber" },
-                  { label: "ลา", value: DataUser.leaveDays, color: "rose" },
+                  { label: "เข้าร่วม", value: DataUser.JOIN_DAYS, color: "emerald" },
+                  { label: "ขาด", value: DataUser.ABSENT_DAYS, color: "red" },
+                  { label: "สาย", value: DataUser.LATE_DAYS, color: "amber" },
+                  { label: "ลา", value: DataUser.LEAVE_DAYS, color: "rose" },
                 ].map((stat) => (
                   <div key={stat.label} className={`text-center p-4 rounded-2xl bg-${stat.color}-50`}>
                     <p className={`text-3xl font-bold text-${stat.color}-600`}>{stat.value}</p>
@@ -605,11 +601,11 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                   <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-linear-to-r from-emerald-400 to-green-500 transition-all duration-1000"
-                      style={{ width: `${(DataUser.joinDays / totalDays) * 100}%` }}
+                      style={{ width: `${(DataUser.JOIN_DAYS / totalDays) * 100}%` }}
                     />
                   </div>
                   <span className="text-xl font-bold text-emerald-600">
-                    {((DataUser.joinDays / totalDays) * 100).toFixed(1)}%
+                    {((DataUser.JOIN_DAYS / totalDays) * 100).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -622,7 +618,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20 animate-fadeIn">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">ตารางเรียนประจำวัน</h2>
-              <span className="text-sm text-gray-500">{DataUser.classes || "ไม่ระบุชั้น"}</span>
+              <span className="text-sm text-gray-500">{DataUser.CLASSES || "ไม่ระบุชั้น"}</span>
             </div>
 
             {loadingSchedule ? (
@@ -678,7 +674,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                 <h2 className="text-xl font-semibold text-gray-900">ประวัติความประพฤติ</h2>
                 <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-amber-400 to-yellow-500 rounded-xl text-white">
                   <Award size={18} />
-                  <span className="font-semibold">{DataUser.behaviorScore} คะแนน</span>
+                  <span className="font-semibold">{DataUser.BEHAVIOR_SCORE} คะแนน</span>
                 </div>
               </div>
 
@@ -796,13 +792,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-lg text-sm font-bold ${
-                              student.behaviorScore >= 80
-                                ? "bg-emerald-100 text-emerald-700"
-                                : student.behaviorScore >= 60
+                            <span className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-lg text-sm font-bold ${student.behaviorScore >= 80
+                              ? "bg-emerald-100 text-emerald-700"
+                              : student.behaviorScore >= 60
                                 ? "bg-amber-100 text-amber-700"
                                 : "bg-red-100 text-red-700"
-                            }`}>
+                              }`}>
                               {student.behaviorScore}
                             </span>
                           </td>

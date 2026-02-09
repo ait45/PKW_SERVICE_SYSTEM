@@ -1,8 +1,9 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextResponse, NextRequest } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { PoolConnection } from "mariadb/*";
-import Teacher from "@/models/Mongo.model.Teacher.ts";
+import Teacher from "@/models/Mongo.model.Teacher";
+import bcrypt from "bcrypt";
 
 async function genPassword(length: number) {
   const characters = "0123456789";
@@ -35,12 +36,13 @@ export async function GET(req: NextRequest) {
       { status: 403 },
     );
 
+  let conn: PoolConnection | undefined;
   try {
-    const conn = await MariaDBConnection.getConnection();
+    conn = await MariaDBConnection.getConnection();
     const { searchParams } = new URL(req.url);
     const subjectGroup = searchParams.get("subjectGroup");
 
-    let query = `SELECT TEACHER_ID, NAME, DEPARTMENT, SUBJECT, PHONE, IS_ADMIN, SUBJECT_GROUP FROM ${process.env.MARIA_DB_TABLE_TEACHERS}`;
+    let query = `SELECT TEACHER_ID, NAME, PASSWORD, DEPARTMENT, SUBJECT, PHONE, IS_ADMIN, SUBJECT_GROUP FROM ${process.env.MARIA_DB_TABLE_TEACHERS}`;
     const params: string[] = [];
 
     if (subjectGroup && subjectGroup !== "all") {
@@ -51,7 +53,6 @@ export async function GET(req: NextRequest) {
     query += ` ORDER BY SUBJECT_GROUP, NAME`;
 
     const payload = await conn.query(query, params);
-    conn.end();
 
     return NextResponse.json(
       { success: true, message: payload },
@@ -63,6 +64,8 @@ export async function GET(req: NextRequest) {
       { success: false, message: error },
       { status: 500 },
     );
+  } finally {
+    if (conn) conn.release();
   }
 }
 
@@ -94,6 +97,7 @@ export async function POST(req: NextRequest) {
     const {
       teacherId,
       name,
+      password,
       department,
       subject,
       phone,
@@ -101,25 +105,27 @@ export async function POST(req: NextRequest) {
       isAdmin,
     } = body;
 
-    if (!teacherId || !name) {
+    if (!teacherId || !name || !password) {
       return NextResponse.json(
         {
           error: "Bad Request",
-          message: "กรุณากรอกข้อมูลที่จำเป็น",
+          message: "กรุณากรอกรหัสครู, ชื่อ และรหัสผ่าน",
           code: "BAD_REQUEST",
         },
         { status: 400 },
       );
     }
+    const hashPass = await bcrypt.hash(password, 10);
 
     conn = await MariaDBConnection.getConnection();
     const query = `INSERT INTO ${process.env.MARIA_DB_TABLE_TEACHERS} 
-      (TEACHER_ID, NAME, DEPARTMENT, SUBJECT, PHONE, SUBJECT_GROUP, IS_ADMIN) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      (TEACHER_ID, NAME, PASSWORD, DEPARTMENT, SUBJECT, PHONE, SUBJECT_GROUP, IS_ADMIN) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
     await conn.execute(query, [
       teacherId,
       name,
+      password,
       department || null,
       subject || null,
       phone || null,
@@ -127,11 +133,11 @@ export async function POST(req: NextRequest) {
       isAdmin || false,
     ]);
     // add account to system login
-    const passwordLogin = await genPassword(6);
+    
     await Teacher.create({
       teacherId: teacherId,
       name: name,
-      password: passwordLogin,
+      password: hashPass,
       department: department || null,
       role: "teacher",
       isAdmin: isAdmin || false,
@@ -151,7 +157,7 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
 
@@ -179,6 +185,7 @@ export async function PUT(req: NextRequest) {
     const {
       teacherId,
       name,
+      password,
       department,
       subject,
       phone,
@@ -198,19 +205,52 @@ export async function PUT(req: NextRequest) {
     }
 
     conn = await MariaDBConnection.getConnection();
-    const query = `UPDATE ${process.env.MARIA_DB_TABLE_TEACHERS} SET 
-      NAME = ?, DEPARTMENT = ?, SUBJECT = ?, PHONE = ?, SUBJECT_GROUP = ?, IS_ADMIN = ?
-      WHERE TEACHER_ID = ?`;
+    
+    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    if (password) {
+      const query = `UPDATE ${process.env.MARIA_DB_TABLE_TEACHERS} SET 
+        NAME = ?, PASSWORD = ?, DEPARTMENT = ?, SUBJECT = ?, PHONE = ?, SUBJECT_GROUP = ?, IS_ADMIN = ?
+        WHERE TEACHER_ID = ?`;
 
-    await conn.execute(query, [
-      name,
-      department || null,
-      subject || null,
-      phone || null,
-      subjectGroup || null,
-      isAdmin || false,
-      teacherId,
-    ]);
+      await conn.execute(query, [
+        name,
+        password,
+        department || null,
+        subject || null,
+        phone || null,
+        subjectGroup || null,
+        isAdmin || false,
+        teacherId,
+      ]);
+
+      // อัพเดต password ใน MongoDB ด้วย
+      const hashPass = await bcrypt.hash(password, 10);
+      await Teacher.updateOne(
+        { teacherId: teacherId },
+        { $set: { name: name, password: hashPass, isAdmin: isAdmin } }
+      );
+    } else {
+      // ไม่เปลี่ยนรหัสผ่าน
+      const query = `UPDATE ${process.env.MARIA_DB_TABLE_TEACHERS} SET 
+        NAME = ?, DEPARTMENT = ?, SUBJECT = ?, PHONE = ?, SUBJECT_GROUP = ?, IS_ADMIN = ?
+        WHERE TEACHER_ID = ?`;
+
+      await conn.execute(query, [
+        name,
+        department || null,
+        subject || null,
+        phone || null,
+        subjectGroup || null,
+        isAdmin || false,
+        teacherId,
+      ]);
+      console.log(isAdmin);
+      // อัพเดตข้อมูลใน MongoDB ด้วย
+       await Teacher.updateOne(
+         { teacherId: teacherId },
+         { $set: { name: name, isAdmin: isAdmin } }
+       );
+    }
 
     return NextResponse.json(
       { success: true, message: "แก้ไขข้อมูลครูสำเร็จ", code: "SUCCESSFULLY" },
@@ -268,7 +308,6 @@ export async function DELETE(req: NextRequest) {
     conn = await MariaDBConnection.getConnection();
     const query = `DELETE FROM ${process.env.MARIA_DB_TABLE_TEACHERS} WHERE TEACHER_ID = ?`;
     await conn.execute(query, [teacherId]);
-    conn.end();
 
     return NextResponse.json(
       { success: true, message: "ลบข้อมูลครูสำเร็จ", code: "SUCCESSFULLY" },

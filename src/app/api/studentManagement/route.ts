@@ -1,8 +1,8 @@
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { NextRequest, NextResponse } from "next/server";
-import Student from "@/models/Mongo.model.Student.ts";
-import { auth } from "@/lib/auth.ts";
+import Student from "@/models/Mongo.model.Student";
+import { auth } from "@/lib/auth";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { PoolConnection } from "mariadb/*";
@@ -57,7 +57,8 @@ export async function GET() {
     const query = `SELECT * FROM ${TABLE_STUDENTS}`;
     const data = await conn.query(query);
 
-    if (session?.user?.role === "teacher") {
+    const studentCouncil = session?.user?.role === "student" && session?.user?.isAdmin === true;
+    if (session?.user?.role === "teacher" || session?.user?.role === "admin" || studentCouncil) {
       const payload = data.map((index: DataStudent) => {
         return {
           _id: index._id,
@@ -73,7 +74,7 @@ export async function GET() {
           lateDays: index.LATE_DAYS,
           absentDays: index.ABSENT_DAYS,
           behaviorScore: index.BEHAVIOR_SCORE,
-          isAdmin: index.IS_ADMIN === 1 ? true : false,
+          isAdmin: index.IS_ADMIN,
           event_absent_periods: index.EVENT_ABSENT_PERIODS,
         };
       });

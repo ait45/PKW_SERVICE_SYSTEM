@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
@@ -62,7 +66,7 @@ const nextConfig: NextConfig = {
   },
 
   turbopack: {
-    resolveExtensions: [".mdx", ".tsx", ".jsx", ".js", ".mjs", ".json"],
+    resolveExtensions: [".mdx", ".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
     rules: {
       "*.svg": {
         loaders: ["@svgr/webpack"],
@@ -77,7 +81,7 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 
   // สำหรับ server-only packages
-  serverExternalPackages: ["pdfkit"],
+  serverExternalPackages: ["pdfkit", "mongoose", "mariadb", "bcrypt", "pdfmake"],
 
   typedRoutes: true,
   eslint: { ignoreDuringBuilds: true },

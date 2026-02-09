@@ -28,6 +28,10 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+      type: String,
+      default: "student",
+    },
     classes: { type: String },
     Number: { type: Number },
   },

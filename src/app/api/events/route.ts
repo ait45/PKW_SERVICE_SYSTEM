@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { PoolConnection } from "mariadb/*";
 
 const MARIA_DB_TABLE_EVENTS = process.env.MARIA_DB_TABLE_EVENTS;
@@ -29,7 +29,6 @@ export async function GET(req: NextRequest) {
     conn = await MariaDBConnection.getConnection();
     const query = `SELECT * FROM ${MARIA_DB_TABLE_EVENTS}`;
     const payload = await conn.query(query);
-    conn.end();
     return NextResponse.json(
       { success: true, message: payload, code: "SUCCESS" },
       { status: 200 },

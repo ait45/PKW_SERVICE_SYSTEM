@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { PoolConnection } from "mariadb";
 
 const NOTIFICATIONS_TABLE = process.env.MARIA_DB_TABLE_NOTIFICATIONS;

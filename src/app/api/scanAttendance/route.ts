@@ -1,10 +1,11 @@
 "use server";
 import { NextResponse, NextRequest } from "next/server";
-import { cutoff, attendanceStart } from "@/scripts/checkCutoff.ts";
-import { update_behaviorScore } from "@/scripts/behaviorScore-deduction.ts";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { cutoff, attendanceStart } from "@/scripts/checkCutoff";
+import { update_behaviorScore } from "@/scripts/behaviorScore-deduction";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { PoolConnection } from "mariadb";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
+import { position } from "html2canvas/dist/types/css/property-descriptors/position";
 
 const now = new Date();
 const startOfDay = new Date();
@@ -49,11 +50,12 @@ export async function POST(req: NextRequest) {
     if (await attendanceStart()) {
       const post = await req.json();
 
+      const id = typeof post.id === "object" ? post.id.id : post.id;
       conn = await MariaDBConnection.getConnection();
       const status = await cutoff();
-
+      console.log([post.handler, status, id]);
       const query: string = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS) SELECT ?, STUDENT_ID, NAME, CLASSES, ? FROM ${students_Table} WHERE STUDENT_ID = ?`;
-      const result = await conn.execute(query, [post.handler, status, post.id]);
+      const result = await conn.execute(query, [post.handler, status, id]);
       if (result.affectedRows === 0) {
         return NextResponse.json(
           {

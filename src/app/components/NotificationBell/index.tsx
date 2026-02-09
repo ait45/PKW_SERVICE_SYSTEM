@@ -135,7 +135,7 @@ export default function NotificationBell({ session, onNavigate }: NotificationBe
   if (!session) return null;
 
   return (
-    <main className="relative z-90" ref={dropdownRef}>
+    <main className="relative z-60" ref={dropdownRef}>
       {/* Bell Button */}
       <button
         onClick={() => {

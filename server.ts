@@ -7,7 +7,9 @@ import type {
 import next from "next";
 import rateLimit from "express-rate-limit";
 import "dotenv/config";
+import cron from "node-cron";
 import { autoCutoffWithRetry } from "./src/scripts/checkCutoff.ts";
+import { sendDailyReport } from "./src/scripts/dailyReport.ts";
 import path from "path";
 import fs from "fs";
 import cookie from "cookie";
@@ -182,5 +184,28 @@ app.prepare().then(() => {
         }),
       );
     }, 60000); // ทุก 1 นาที
+
+    // 🔔 Cron job: ส่งรายงานประจำวัน ทุกวันจันทร์-ศุกร์ เวลา 09:00
+    cron.schedule(
+      "0 9 * * 1-5",
+      async () => {
+        console.log("[cron] Running daily attendance report...");
+        //if (true) return;
+        try {
+          const result = await sendDailyReport();
+          if (result.success) {
+            console.log(`[cron] Daily report sent to ${result.userCount} users`);
+          } else {
+            console.log(`[cron] Daily report failed: ${result.message}`);
+          }
+        } catch (err) {
+          console.error("[cron] Daily report error:", err);
+        }
+      },
+      {
+        timezone: "Asia/Bangkok",
+      }
+    );
+    console.log("> Daily report cron scheduled (09:00 Mon-Fri, Asia/Bangkok)");
   });
 });

@@ -51,8 +51,9 @@ const defaultMenuGroups: MenuGroup[] = [
     items: [
       { id: "teachers", label: "ข้อมูลครู", icon: UserRound },
       { id: "teacherBoard", label: "บอร์ดกลุ่มสาระ", icon: Users },
+      { id: "behaviorScore", label: "คะแนนความประพฤติ", icon: ShieldUser },
       { id: "notifications", label: "ประกาศ", icon: Pin },
-      { id: "forgetPasswordMess", label: "การแจ้งลืมรหัสผ่าน", icon: RotateCcwKey }, 
+      { id: "forgetPasswordMess", label: "การแจ้งลืมรหัสผ่าน", icon: RotateCcwKey },
     ],
   },
   {
@@ -66,7 +67,6 @@ const defaultMenuGroups: MenuGroup[] = [
   {
     title: "ระบบ",
     items: [
-      { id: "LineUser", label: "จัดการผู้ใช้ไลน์", icon: Users },
       { id: "settings", label: "ตั้งค่า", icon: Settings },
     ],
   },
@@ -120,9 +120,8 @@ function SideBarTeacher({
 
   return (
     <div
-      className={`relative bg-[#009EA3] text-white transition-all duration-500 ease-initial shadow-2xl ${
-        isCollapsed ? "w-16" : "w-60"
-      } h-screen overflow-y-auto hide-scrollbar`}
+      className={`relative bg-[#009EA3] text-white transition-all duration-500 ease-initial shadow-2xl ${isCollapsed ? "w-16" : "w-60"
+        } h-screen overflow-y-auto hide-scrollbar`}
     >
       {/* Header */}
       <div className="p-4 border-b border-white/10">
@@ -133,7 +132,7 @@ function SideBarTeacher({
                 <ShieldUser className="w-5 h-5" />
               </div>
               {session?.user?.role === "teacher" &&
-              session?.user?.isAdmin === true ? (
+                session?.user?.isAdmin === true ? (
                 <span className="font-bold text-xl cursor-default whitespace-nowrap overflow-hidden">
                   หน้าผู้ดูแลระบบ
                 </span>
@@ -183,19 +182,16 @@ function SideBarTeacher({
                   <li key={item.id}>
                     <button
                       onClick={() => handleMenuClick(item.id)}
-                      className={`w-full flex items-center px-3 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:translate-x-1 group relative ${
-                        isActive ? "bg-white/20 shadow-lg" : ""
-                      } ${
-                        isCollapsed
+                      className={`w-full flex items-center px-3 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:translate-x-1 group relative ${isActive ? "bg-white/20 shadow-lg" : ""
+                        } ${isCollapsed
                           ? "justify-center"
                           : "justify-start space-x-3"
-                      }`}
+                        }`}
                     >
                       <div className="relative">
                         <IconComponent
-                          className={`w-5 h-5 transition-transform duration-200 ${
-                            isActive ? "scale-110" : "group-hover:scale-105"
-                          }`}
+                          className={`w-5 h-5 transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-105"
+                            }`}
                         />
                         {/* Badge */}
                         {badgeCount > 0 && (

@@ -1,4 +1,4 @@
-import Student from "./student";
+import Student from ".";
 
 export const metadata = {
   title: "หน้าหลัก",

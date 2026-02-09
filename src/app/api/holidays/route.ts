@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { Holiday } from "@/scripts/Holiday.ts";
-import { auth } from "@/lib/auth.ts";
+import { Holiday } from "@/scripts/Holiday";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
   const session = await auth();

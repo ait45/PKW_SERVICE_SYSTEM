@@ -33,11 +33,11 @@ export default function LoginPage() {
       const id = session?.id;
       const role = session?.user?.role;
       const isAdmin = session?.user?.isAdmin;
-      if (role === "teacher") router.replace(`/teacher/${id}` as Route);
-      else if (role === "student") router.replace(`/student/${id}` as Route);
-      else if (role === "teacher" && isAdmin)
+      if (role === "teacher" && isAdmin === false) router.replace(`/teacher/${id}` as Route);
+      else if (role === "student" && isAdmin === false) router.replace(`/student/${id}` as Route);
+      else if (role === "teacher" && isAdmin === true)
         router.replace(`/teacher/admin/${id}` as Route);
-      else if (role === "student" && isAdmin)
+      else if (role === "student" && isAdmin === true)
         router.replace(`/student/admin/${id}` as Route);
       else router.replace("/login" as Route);
     }
@@ -94,7 +94,7 @@ export default function LoginPage() {
         password,
       });
       if (!res?.error) {
-        const auth = await fetch("/api/auth/session", { cache: "no-cache"});
+        const auth = await fetch("/api/auth/session", { cache: "no-cache" });
         const session = await auth.json();
         if (!session?.user) {
           await Swal.fire({
@@ -133,7 +133,7 @@ export default function LoginPage() {
           return router.replace(`/student/admin/${session?.id}` as Route);
         }
       }
-      
+
       if (res?.code) {
         await Swal.fire({
           title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -196,9 +196,8 @@ export default function LoginPage() {
                   type="text"
                   value={FormData.username}
                   onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                    errors.username ? "border-red-300" : "border-gray-300"
-                  } outline-none`}
+                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.username ? "border-red-300" : "border-gray-300"
+                    } outline-none`}
                   placeholder="กรอกชื่อผู้ใช้ของคุณ"
                 />
               </div>
@@ -227,10 +226,9 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={FormData.password}
                   onChange={handleInputChange}
-                  
-                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                    errors.password ? "border-red-300" : "border-gray-300"
-                  } outline-none`}
+
+                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.password ? "border-red-300" : "border-gray-300"
+                    } outline-none`}
                   placeholder="กรอกรหัสผ่านของคุณ"
                 />
                 <button
@@ -256,41 +254,41 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <div className="block">
                 <div className="flex items-center">
-                <input
-                  id="accept-terms"
-                  name="terms"
-                  type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => {
-                    setAcceptTerms(e.target.checked);
-                    if (errors.terms) {
-                      setErrors((prev) => ({ ...prev, terms: "" }));
-                    }
-                  }}
-                  className={`h-4 w-4 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3] outline-none`}
-                />
-                <label
-                  htmlFor="accept-terms"
-                  className="ml-2 block text-[10px] sm:text-sm text-gray-700 cursor-pointer"
-                >
-                  ยอมรับ
-                  <Link
-                    href={`/terms` as Route}
-                    className="text-[#009EA3] hover:text-[#00CAD1] hover:underline ml-1"
-                    target="_blank"
+                  <input
+                    id="accept-terms"
+                    name="terms"
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => {
+                      setAcceptTerms(e.target.checked);
+                      if (errors.terms) {
+                        setErrors((prev) => ({ ...prev, terms: "" }));
+                      }
+                    }}
+                    className={`h-4 w-4 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3] outline-none`}
+                  />
+                  <label
+                    htmlFor="accept-terms"
+                    className="ml-2 block text-[10px] sm:text-sm text-gray-700 cursor-pointer"
                   >
-                    ข้อกำหนดการใช้งาน
-                  </Link>
-                </label>
-                
+                    ยอมรับ
+                    <Link
+                      href={`/terms` as Route}
+                      className="text-[#009EA3] hover:text-[#00CAD1] hover:underline ml-1"
+                      target="_blank"
+                    >
+                      ข้อกำหนดการใช้งาน
+                    </Link>
+                  </label>
+
+                </div>
+                {errors.terms && (
+                  <p className="mt-1 text-[10px] sm:text-sm text-red-600">
+                    {errors.terms}
+                  </p>
+                )}
               </div>
-              {errors.terms && (
-                <p className="mt-1 text-[10px] sm:text-sm text-red-600">
-                  {errors.terms}
-                </p>
-              )}
-              </div>
-              
+
               <div className="text-sm">
                 <a
                   href={"/forget-password" as Route}
@@ -313,12 +311,11 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isPending}
-              
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${
-                  isPending
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#009EA3] hover:bg-[#009EA3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                }`}
+
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${isPending
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#009EA3] hover:bg-[#009EA3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  }`}
               >
                 {isPending ? (
                   <>
@@ -352,12 +349,12 @@ export default function LoginPage() {
           </form>
           <div className="flex justify-center gap-4 text-xs text-gray-500 mt-3">
             <p className="text-center text-xs text-gray-500 mt-3">
-            กลับเข้าสู่{" "}
-            <Link href="/" className="text-[#009EA3] hover:text-[#00CAD1] transition-colors">
-              หน้าแรก ?
-            </Link>
-          </p>
-            
+              กลับเข้าสู่{" "}
+              <Link href="/" className="text-[#009EA3] hover:text-[#00CAD1] transition-colors">
+                หน้าแรก ?
+              </Link>
+            </p>
+
           </div>
         </div>
 

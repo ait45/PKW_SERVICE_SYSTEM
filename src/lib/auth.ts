@@ -1,8 +1,8 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { MongoDBConnection } from "./config.mongoDB.ts";
-import Student from "../models/Mongo.model.Student.ts";
-import Teacher from "../models/Mongo.model.Teacher.ts";
+import { MongoDBConnection } from "./config.mongoDB";
+import Student from "../models/Mongo.model.Student";
+import Teacher from "../models/Mongo.model.Teacher";
 import bcrypt from "bcrypt";
 import type { ObjectId } from "mongoose";
 import { NextResponse } from "next/server";
@@ -39,15 +39,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (statusDevelopment === "development") {
-          return {
-            id: "1",
-            username: "admin",
-            name: "Admin",
-            role: "teacher",
-            isAdmin: true,
-          };
-        }
         const { username, password } = credentials as Credentials;
         if (!username || !password) {
           throw new AuthError("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
@@ -74,18 +65,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               console.log("Invalid password for teacher:", username);
               throw new AuthError("รหัสผ่านไม่ถูกต้อง");
             }
-
             return {
               id: user._id.toString(),
               username: user.teacherId,
               name: user.name,
-              role: user.role,
+              role: user.role || "teacher",
               isAdmin: user.isAdmin,
             };
+          } else if (username === process.env.USER_LOGIN){
+            if (password === process.env.PASS_LOGIN) {
+              return {
+              id: "1",
+              username: process.env.USER_LOGIN,
+              name: "Admin",
+              role: "teacher",
+              isAdmin: true,
+            }
           } else {
+            throw new AuthError("ชื่อผู้ใช้ไม่ถูกต้อง");
+            }
+          } else {
+            // Pad leading zeros ให้ครบ 5 หลัก เพื่อรองรับ studentId ที่มี 0 นำหน้า
+            const paddedUsername = username.padStart(5, '0');
+            
             const user: UserDocument | null =
               await Student.findOne<UserDocument>({
-                studentId: username,
+                studentId: paddedUsername,
               });
 
             if (!user) {

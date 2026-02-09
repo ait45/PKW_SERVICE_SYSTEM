@@ -23,19 +23,19 @@ import AttendanceCheckPage from "../AttendanceCheck";
 import { SkeletonStudentDashboard } from "../Skeleton";
 
 interface User {
-  studentId: number;
-  name: string;
-  classes: string;
-  isAdmin: boolean;
-  Number: number;
-  joinDays: number;
-  leaveDays: number;
-  lateDays: number;
-  absentDays: number;
-  behaviorScore: number;
-  data_attendance: {
-    status: string;
-    createdAt: string;
+  STUDENT_ID: number;
+  NAME: string;
+  CLASSES: string;
+  IS_ADMIN: boolean;
+  NUMBER: number;
+  JOIN_DAYS: number;
+  LEAVE_DAYS: number;
+  LATE_DAYS: number;
+  ABSENT_DAYS: number;
+  BEHAVIOR_SCORE: number;
+  DATA_ATTENDANCE: {
+    STATUS: string;
+    CREATED_AT: string;
   };
 }
 
@@ -63,22 +63,22 @@ const periodTimes = [
 const StudentDashboard = ({ session }: { session: any }) => {
   const [loading, setLoading] = useState(true);
   const [DataUser, setDataUser] = useState<User>({
-    studentId: 0,
-    name: "",
-    classes: "",
-    isAdmin: false,
-    Number: 0,
-    joinDays: 0,
-    leaveDays: 0,
-    lateDays: 0,
-    absentDays: 0,
-    behaviorScore: 0,
-    data_attendance: {
-      status: "",
-      createdAt: "",
+    STUDENT_ID: 0,
+    NAME: "",
+    CLASSES: "",
+    IS_ADMIN: false,
+    NUMBER: 0,
+    JOIN_DAYS: 0,
+    LEAVE_DAYS: 0,
+    LATE_DAYS: 0,
+    ABSENT_DAYS: 0,
+    BEHAVIOR_SCORE: 0,
+    DATA_ATTENDANCE: {
+      STATUS: "",
+      CREATED_AT: "",
     },
   });
-  
+
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -87,22 +87,23 @@ const StudentDashboard = ({ session }: { session: any }) => {
   const fetchDataUser = async () => {
     try {
       setLoading(true);
-      const req = await fetch(`/api/studentManagement/${session?.id}`);
+      const req = await fetch(`/api/studentManagement/${session?.user?.username}`);
       const data = await req.json();
-      setDataUser(data.data);
-      
+      setDataUser(data.data || {});
+
       const req_attendance = await fetch(
         `/api/scanAttendance/${session?.user?.username}`
       );
-      if (req_attendance.status === 204) return;
+      if (req_attendance.status === 404) return;
       const data_attendance_raw = await req_attendance.json();
-      const date = new Date(data_attendance_raw.payload.CREATED_AT);
+      const date = new Date(data_attendance_raw.payload[0].CREATED_AT);
       const time = date.toTimeString().split(" ")[0];
-      const data_attendance = {
-        status: data_attendance_raw.data.STATUS,
-        createdAt: time,
+      const DATA_ATTENDANCE = {
+        STATUS: data_attendance_raw.payload[0].STATUS,
+        CREATED_AT: time,
       };
-      setDataUser((prev) => ({ ...prev, data_attendance }));
+      setDataUser((prev) => ({ ...prev, DATA_ATTENDANCE }));
+
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
@@ -111,12 +112,12 @@ const StudentDashboard = ({ session }: { session: any }) => {
   };
 
   const fetchSchedule = async () => {
-    if (!DataUser.classes) return;
+    if (!DataUser.CLASSES) return;
     try {
       setLoadingSchedule(true);
       const today = new Date().getDay() || 1;
       const res = await fetch(
-        `/api/schedule?classId=${encodeURIComponent(DataUser.classes)}&dayOfWeek=${today}`
+        `/api/schedule?classId=${encodeURIComponent(DataUser.CLASSES)}&dayOfWeek=${today}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -131,19 +132,16 @@ const StudentDashboard = ({ session }: { session: any }) => {
 
   useEffect(() => {
     fetchDataUser();
+
   }, []);
 
-  useEffect(() => {
-    if (DataUser.classes) {
-      fetchSchedule();
-    }
-  }, [DataUser.classes]);
 
-  const totalDays = DataUser.joinDays + DataUser.absentDays + DataUser.lateDays + DataUser.leaveDays || 1;
+  const totalDays = DataUser.JOIN_DAYS + DataUser.ABSENT_DAYS + DataUser.LATE_DAYS + DataUser.LEAVE_DAYS || 1;
 
   if (loading) {
     return <SkeletonStudentDashboard />;
   }
+  console.log(DataUser);
 
   const AttendanceCard = ({
     icon: Icon,
@@ -165,13 +163,13 @@ const StudentDashboard = ({ session }: { session: any }) => {
       <div
         className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${gradient}`}
       />
-      
+
       {/* Decorative circle */}
       <div
         className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
         style={{ backgroundColor: color }}
       />
-      
+
       <div className="relative z-10 flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
@@ -205,11 +203,10 @@ const StudentDashboard = ({ session }: { session: any }) => {
     <button
       title={label}
       onClick={() => setSelectedTab(id)}
-      className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${
-        selectedTab === id
-          ? "bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
-          : "text-gray-600 hover:bg-white/80 hover:shadow-md"
-      }`}
+      className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${selectedTab === id
+        ? "bg-linear-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
+        : "text-gray-600 hover:bg-white/80 hover:shadow-md"
+        }`}
     >
       <Icon className="w-5 h-5" />
       <span className="hidden md:inline">{label}</span>
@@ -251,7 +248,7 @@ const StudentDashboard = ({ session }: { session: any }) => {
     }
   };
 
-  const statusStyles = getStatusStyles(DataUser?.data_attendance?.status);
+  const statusStyles = getStatusStyles(DataUser?.DATA_ATTENDANCE?.STATUS);
   const StatusIcon = statusStyles.icon;
 
   return (
@@ -274,11 +271,10 @@ const StudentDashboard = ({ session }: { session: any }) => {
                 onClick={() => setShowDetailProfile(!showDetailProfile)}
               >
                 <div
-                  className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
-                    DataUser.isAdmin
-                      ? "bg-linear-to-br from-rose-500 to-pink-600"
-                      : "bg-linear-to-br from-teal-500 to-cyan-600"
-                  }`}
+                  className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${DataUser.IS_ADMIN
+                    ? "bg-linear-to-br from-rose-500 to-pink-600"
+                    : "bg-linear-to-br from-teal-500 to-cyan-600"
+                    }`}
                 >
                   <UserRound className="w-8 h-8 md:w-10 md:h-10 text-white" />
                 </div>
@@ -290,20 +286,20 @@ const StudentDashboard = ({ session }: { session: any }) => {
               {/* User Info */}
               <div className="hidden sm:block">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                  {DataUser.name || "กำลังโหลด..."}
+                  {DataUser.NAME || "กำลังโหลด..."}
                 </h1>
                 <div className="flex flex-wrap gap-3 mt-1">
                   <span className="inline-flex items-center gap-1 text-sm text-gray-500">
                     <span className="w-1.5 h-1.5 bg-violet-500 rounded-full" />
-                    {DataUser.studentId || "-"}
+                    {DataUser.STUDENT_ID || "-"}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm text-gray-500">
                     <span className="w-1.5 h-1.5 bg-pink-500 rounded-full" />
-                    {DataUser.classes || "-"}
+                    {DataUser.CLASSES || "-"}
                   </span>
                   <span className="inline-flex items-center gap-1 text-sm text-gray-500">
                     <span className="w-1.5 h-1.5 bg-teal-500 rounded-full" />
-                    เลขที่ {DataUser.Number || "-"}
+                    เลขที่ {DataUser.NUMBER || "-"}
                   </span>
                 </div>
               </div>
@@ -312,11 +308,11 @@ const StudentDashboard = ({ session }: { session: any }) => {
               {showDetailProfile && (
                 <div className="sm:hidden absolute left-16 top-20 z-50 animate-fadeIn">
                   <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/20 min-w-[200px]">
-                    <h2 className="font-bold text-gray-900">{DataUser.name}</h2>
+                    <h2 className="font-bold text-gray-900">{DataUser.NAME}</h2>
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <p>รหัส: {DataUser.studentId}</p>
-                      <p>ชั้น: {DataUser.classes}</p>
-                      <p>เลขที่: {DataUser.Number}</p>
+                      <p>รหัส: {DataUser.STUDENT_ID}</p>
+                      <p>ชั้น: {DataUser.CLASSES}</p>
+                      <p>เลขที่: {DataUser.NUMBER}</p>
                     </div>
                   </div>
                 </div>
@@ -343,8 +339,8 @@ const StudentDashboard = ({ session }: { session: any }) => {
                   <div>
                     <p className="font-semibold text-sm">{statusStyles.text}</p>
                     <p className="text-xs text-white/80">
-                      {DataUser?.data_attendance?.createdAt
-                        ? `เวลา ${DataUser.data_attendance.createdAt}`
+                      {DataUser?.DATA_ATTENDANCE?.CREATED_AT
+                        ? `เวลา ${DataUser.DATA_ATTENDANCE.CREATED_AT}`
                         : "วันนี้"}
                     </p>
                   </div>
@@ -385,34 +381,34 @@ const StudentDashboard = ({ session }: { session: any }) => {
               <AttendanceCard
                 icon={CheckCircle}
                 label="วันที่เข้าร่วม"
-                value={DataUser.joinDays}
+                value={DataUser.JOIN_DAYS}
                 color="#10B981"
                 gradient="bg-gradient-to-br from-emerald-400 to-green-500"
-                percentage={((DataUser.joinDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.JOIN_DAYS / totalDays) * 100).toFixed(1)}
               />
               <AttendanceCard
                 icon={XCircle}
                 label="วันที่ขาด"
-                value={DataUser.absentDays}
+                value={DataUser.ABSENT_DAYS}
                 color="#EF4444"
                 gradient="bg-gradient-to-br from-red-400 to-rose-500"
-                percentage={((DataUser.absentDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.ABSENT_DAYS / totalDays) * 100).toFixed(1)}
               />
               <AttendanceCard
                 icon={Clock}
                 label="วันที่มาสาย"
-                value={DataUser.lateDays}
+                value={DataUser.LATE_DAYS}
                 color="#F59E0B"
                 gradient="bg-gradient-to-br from-amber-400 to-orange-500"
-                percentage={((DataUser.lateDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.LATE_DAYS / totalDays) * 100).toFixed(1)}
               />
               <AttendanceCard
                 icon={Pause}
                 label="วันที่ลา"
-                value={DataUser.leaveDays}
+                value={DataUser.LEAVE_DAYS}
                 color="#8B5CF6"
                 gradient="bg-gradient-to-br from-violet-400 to-purple-500"
-                percentage={((DataUser.leaveDays / totalDays) * 100).toFixed(1)}
+                percentage={((DataUser.LEAVE_DAYS / totalDays) * 100).toFixed(1)}
               />
             </div>
 
@@ -430,44 +426,41 @@ const StudentDashboard = ({ session }: { session: any }) => {
                     </h3>
                   </div>
                   <TrendingUp
-                    className={`w-5 h-5 ${
-                      DataUser.behaviorScore >= 80
-                        ? "text-emerald-500"
-                        : "text-amber-500"
-                    }`}
+                    className={`w-5 h-5 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : "text-amber-500"
+                      }`}
                   />
                 </div>
 
                 <div className="text-center">
                   <div
-                    className={`text-6xl font-bold mb-4 ${
-                      DataUser.behaviorScore >= 80
-                        ? "text-emerald-500"
-                        : DataUser.behaviorScore >= 60
+                    className={`text-6xl font-bold mb-4 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : DataUser.BEHAVIOR_SCORE >= 60
                         ? "text-amber-500"
                         : "text-red-500"
-                    }`}
+                      }`}
                   >
-                    {DataUser.behaviorScore}
+                    {DataUser.BEHAVIOR_SCORE}
                   </div>
                   <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
-                        DataUser.behaviorScore >= 80
-                          ? "bg-linear-to-r from-emerald-400 to-green-500"
-                          : DataUser.behaviorScore >= 60
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${DataUser.BEHAVIOR_SCORE >= 80
+                        ? "bg-linear-to-r from-emerald-400 to-green-500"
+                        : DataUser.BEHAVIOR_SCORE >= 60
                           ? "bg-linear-to-r from-amber-400 to-orange-500"
                           : "bg-linear-to-r from-red-400 to-rose-500"
-                      }`}
-                      style={{ width: `${DataUser.behaviorScore}%` }}
+                        }`}
+                      style={{ width: `${DataUser.BEHAVIOR_SCORE}%` }}
                     />
                   </div>
                   <p className="text-sm text-gray-500 mt-3">
-                    {DataUser.behaviorScore >= 80
+                    {DataUser.BEHAVIOR_SCORE >= 80
                       ? "🌟 ความประพฤติดีมาก"
-                      : DataUser.behaviorScore >= 60
-                      ? "👍 ความประพฤติดี"
-                      : "⚠️ ต้องปรับปรุง"}
+                      : DataUser.BEHAVIOR_SCORE >= 60
+                        ? "👍 ความประพฤติดี"
+                        : "⚠️ ต้องปรับปรุง"}
                   </p>
                 </div>
               </div>
@@ -551,10 +544,10 @@ const StudentDashboard = ({ session }: { session: any }) => {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                 {[
                   { label: "วันเรียนทั้งหมด", value: totalDays, color: "blue" },
-                  { label: "เข้าร่วม", value: DataUser.joinDays, color: "emerald" },
-                  { label: "ขาด", value: DataUser.absentDays, color: "red" },
-                  { label: "สาย", value: DataUser.lateDays, color: "amber" },
-                  { label: "ลา", value: DataUser.leaveDays, color: "violet" },
+                  { label: "เข้าร่วม", value: DataUser.JOIN_DAYS, color: "emerald" },
+                  { label: "ขาด", value: DataUser.ABSENT_DAYS, color: "red" },
+                  { label: "สาย", value: DataUser.LATE_DAYS, color: "amber" },
+                  { label: "ลา", value: DataUser.LEAVE_DAYS, color: "violet" },
                 ].map((stat) => (
                   <div
                     key={stat.label}
@@ -576,11 +569,11 @@ const StudentDashboard = ({ session }: { session: any }) => {
                   <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-linear-to-r from-emerald-400 to-green-500 transition-all duration-1000"
-                      style={{ width: `${(DataUser.joinDays / totalDays) * 100}%` }}
+                      style={{ width: `${(DataUser.JOIN_DAYS / totalDays) * 100}%` }}
                     />
                   </div>
                   <span className="text-xl font-bold text-emerald-600">
-                    {((DataUser.joinDays / totalDays) * 100).toFixed(1)}%
+                    {((DataUser.JOIN_DAYS / totalDays) * 100).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -596,7 +589,7 @@ const StudentDashboard = ({ session }: { session: any }) => {
                 ตารางเรียนประจำวัน
               </h2>
               <span className="text-sm text-gray-500">
-                {DataUser.classes || "ไม่ระบุชั้น"}
+                {DataUser.CLASSES || "ไม่ระบุชั้น"}
               </span>
             </div>
 
@@ -678,7 +671,7 @@ const StudentDashboard = ({ session }: { session: any }) => {
                 </h2>
                 <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-amber-400 to-yellow-500 rounded-xl text-white">
                   <Award size={18} />
-                  <span className="font-semibold">{DataUser.behaviorScore} คะแนน</span>
+                  <span className="font-semibold">{DataUser.BEHAVIOR_SCORE} คะแนน</span>
                 </div>
               </div>
 

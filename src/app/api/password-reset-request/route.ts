@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import PasswordResetRequest from "@/models/Mongo.model.PasswordResetRequest.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import PasswordResetRequest from "@/models/Mongo.model.PasswordResetRequest";
 
 // GET - ดึงรายการคำขอรีเซ็ตรหัสผ่าน (Admin)
 export async function GET(req: NextRequest) {

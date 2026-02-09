@@ -5,29 +5,27 @@ import PDFDocument from "pdfkit";
 
 import PDFTable from "pdfkit-table";
 import QRCode from "qrcode";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import Student from "@/models/Mongo.model.Student.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import Student from "@/models/Mongo.model.Student";
 import { Buffer } from "node:buffer";
 import fs from "fs";
 import path from "path";
+import { PoolConnection } from "mariadb/*";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 
 type PDFDoc = InstanceType<typeof PDFDocument>;
 
+const tableStudents = process.env.MARIA_DB_TABLE_STUDENTS;
 function registerFonts(doc: PDFDoc) {
+  const fontsDir = path.join(process.cwd(), "src", "app", "assets", "fonts");
   const fonts = {
     THSarabunNew: {
-      normal: path.join(process.cwd(), "./assets/fonts/THSarabunNew.ttf"),
-      bold: path.join(process.cwd(), "./assets/fonts/THSarabunNew Bold.ttf"),
-      italic: path.join(
-        process.cwd(),
-        "./assets/fonts/THSarabunNew Italic.ttf",
-      ),
-      ExtraBold: path.join(
-        process.cwd(),
-        "./assets/fonts/NotoSansThai ExtraBold.ttf",
-      ),
+      normal: path.join(fontsDir, "THSarabunNew.ttf"),
+      bold: path.join(fontsDir, "THSarabunNew Bold.ttf"),
+      italic: path.join(fontsDir, "THSarabunNew Italic.ttf"),
+      ExtraBold: path.join(fontsDir, "NotoSansThai ExtraBold.ttf"),
     },
   };
 
@@ -126,9 +124,11 @@ export async function GET(
     const startX = doc.page.margins.left;
     const startY = doc.page.margins.top;
 
-    doc.image("./src/app/assets/logo.png", {
+    // ระบุตำแหน่ง x, y ของโลโก้
+    doc.image("./src/app/assets/logo.png", startX, startY, {
       width: 80,
     });
+    
     // คำนวณตำแหน่งข้อความ (ขวาของโลโก้)
     const textX = startX + 80 + 10; // เว้นห่างจากโลโก้เล็กน้อย
     const textY = startY + 10; // ขยับลงมาหน่อยให้ดูบาลานซ์
@@ -137,7 +137,7 @@ export async function GET(
       .font("THSarabunNew ExtraBold")
       .fontSize(24)
       .fillColor("#000")
-      .text("PRAKEAWASAWITTAYA", textX, textY);
+      .text("PRAKEAWASAWITTAYA", textX, textY, { lineBreak: false });
 
     doc
       .moveTo(textX, textY + 30)
@@ -148,18 +148,21 @@ export async function GET(
     doc
       .font("THSarabunNew bold")
       .fontSize(18)
-      .text("PKW SERVICE SYSTEM", textX, textY + 32)
+      .text("PKW SERVICE SYSTEM", textX, textY + 32, { lineBreak: false })
       .fillColor("black");
 
-    // date + handlers
+    // date + handlers (วาดแยกไม่ให้กระทบ cursor หลัก)
     doc.fontSize(12).opacity(1);
     doc.text(
       `ออกเมื่อวันที่: ${getThaiDate()}`,
       doc.page.margins.left,
       doc.page.height - 40,
-      { align: "right" },
+      { align: "right", lineBreak: false },
     );
-    doc.fontSize(12).text("โดยระบบ", { align: "right" });
+    doc.text("โดยระบบ", doc.page.margins.left, doc.page.height - 28, { 
+      align: "right", 
+      lineBreak: false 
+    });
   };
   const FooterPage = (doc: PDFDoc, pageNumber: number, idFile: string) => {
     doc
@@ -177,10 +180,13 @@ export async function GET(
   };
 
   if (method === "qr-student") {
+    let conn: PoolConnection | undefined;
     try {
-      await MongoDBConnection();
+      conn = await MariaDBConnection.getConnection();
       const fileName = getFileName("PKW-QrCode-Student");
-      const students = await Student.find();
+      
+      const query = `SELECT STUDENT_ID, NAME, CLASSES FROM ${tableStudents}`;
+      const students = await conn.query(query);
 
       // สร่้าง table content แบบ QR
       const doc = new PDFDocument({
@@ -209,10 +215,10 @@ export async function GET(
         let y = doc.page.margins.top;
 
         // แยกข้อมูลตามชั้นเรียน
-        const classes = [...new Set(students.map((s) => s.classes))];
+        const classes = [...new Set(students.map((s: any) => s.CLASSES))];
         let isFirstClass = true;
         for (const cls of classes) {
-          const classStudent = students.filter((s) => s.classes === cls);
+          const classStudent = students.filter((s: any) => s.CLASSES === cls);
           // ถ้าไม่ใช่ชั้นแรก ให้ขึ้นหน้าใหม่
           if (!isFirstClass) {
             doc.addPage();
@@ -221,7 +227,8 @@ export async function GET(
           HeaderPage(doc);
 
           x = doc.page.margins.left;
-          y = doc.y + 55;
+          // ใช้ค่าคงที่แทน doc.y เพราะ doc.y อาจไม่แน่นอน
+          y = doc.page.margins.top + 80; // เริ่มหลัง header
           let count = 0;
 
           doc
@@ -232,7 +239,11 @@ export async function GET(
 
           // วาด QRcode
           for (const student of classStudent) {
-            const qrData = await QRCode.toDataURL(student.studentId, {
+            // แปลงเป็น string เพราะ QRCode ต้องการ string
+            const studentId = String(student.STUDENT_ID || "");
+            if (!studentId) continue;
+            
+            const qrData = await QRCode.toDataURL(studentId, {
               type: "image/png",
               color: {
                 dark: "#000000",
@@ -252,15 +263,15 @@ export async function GET(
             doc
               .font("THSarabunNew bold")
               .fontSize(16)
-              .text(`${student.studentId}`, x, y + qrSize + 5, {
+              .text(`${student.STUDENT_ID}`, x, y + qrSize + 5, {
                 width: colWidth,
                 align: "center",
               });
-            doc.text(`${student.name}`, x, y + qrSize + 20, {
+            doc.text(`${student.NAME}`, x, y + qrSize + 20, {
               width: colWidth,
               align: "center",
             });
-            doc.text(`${student.classes}`, x, y + qrSize + 35, {
+            doc.text(`${student.CLASSES}`, x, y + qrSize + 35, {
               width: colWidth,
               align: "center",
             });
@@ -310,6 +321,8 @@ export async function GET(
         },
         { status: 500 },
       );
+    } finally {
+      if (conn) conn.release();
     }
   }
   // รายงานคะแนนความประพฤติของนักเรียนทั้งหมด ----------------------------
@@ -600,7 +613,7 @@ export async function GET(
       endOfDay.setHours(23, 59, 59, 999);
 
       conn = await (
-        await import("@/lib/config.mariaDB.ts")
+        await import("@/lib/config.mariaDB")
       ).MariaDBConnection.getConnection();
 
       // ดึงข้อมูลนักเรียนทั้งหมด

@@ -6,6 +6,9 @@
       "dom.iterable",
       "esnext"
     ],
+    "types": [
+      "node"
+    ],
     "allowJs": true, // สำคัญ: ยอมให้มีไฟล์ .js ผสมได้
     "skipLibCheck": true,
     "strict": true, // แนะนำ: ตั้งเป็น false ก่อนในช่วงเริ่มเปลี่ยน จะได้ไม่เครียดกับ Error ยิบย่อย
@@ -28,7 +31,7 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
   },
   "include": [
     "types/next-env.d.ts",
@@ -38,8 +41,14 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "src/app/next-auth.d.ts",
-    "src/app/api/auth/[...nextauth]/route.ts"
-, "src/scripts/Holiday.ts", "src/lib/auth-config.js", "src/utils/ratelimit.ts", "src/app/page.tsx", "src/app/login/page.js", "src/app/terms/page.js"  ],
+    "src/app/api/auth/[...nextauth]/route.ts",
+    "src/scripts/Holiday.ts",
+    "src/lib/auth-config.js",
+    "src/utils/ratelimit.ts",
+    "src/app/page.tsx",
+    "src/app/login/page.js",
+    "src/app/terms/page.js"
+  ],
   "exclude": [
     "node_modules"
   ],

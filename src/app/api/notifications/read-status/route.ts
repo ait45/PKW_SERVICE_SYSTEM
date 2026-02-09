@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import NotificationRead from "@/models/Mongo.model.NotificationRead.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import NotificationRead from "@/models/Mongo.model.NotificationRead";
 import { PoolConnection } from "mariadb";
 
 const NOTIFICATIONS_TABLE = process.env.MARIA_DB_TABLE_NOTIFICATIONS;
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       query += ` AND (TARGET_AUDIENCE = 'all' OR TARGET_AUDIENCE = 'students'`;
       if (userClass) {
         // Match class-based targets like "class:ม.1"
-        query += ` OR TARGET_AUDIENCE LIKE '%${userClass}%'`;
+        query += ` OR CONVERT(TARGET_AUDIENCE USING utf8mb4) LIKE '%${userClass}%'`;
       }
       query += `)`;
     } else if (userRole === "teacher") {
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
           const userClass = await getStudentClass(conn, userId);
           query += ` AND (TARGET_AUDIENCE = 'all' OR TARGET_AUDIENCE = 'students'`;
           if (userClass) {
-            query += ` OR TARGET_AUDIENCE LIKE '%${userClass}%'`;
+            query += ` OR CONVERT(TARGET_AUDIENCE USING utf8mb4) LIKE '%${userClass}%'`;
           }
           query += `)`;
         } else if (userRole === "teacher") {

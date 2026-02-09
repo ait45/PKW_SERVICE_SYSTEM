@@ -60,12 +60,18 @@ function StatisticsPage() {
       .then((d) => {
         const weeklyData = d.data || [];
         setData(weeklyData);
-        
-        // Calculate totals
-        const dataToday = weeklyData[new Date().getDay()];
 
-        console.log(dataToday);
-        
+        // Calculate totals from entire week data (convert BigInt to Number)
+        const weekTotals = weeklyData.reduce(
+          (acc: { present: number; leave: number; late: number; absent: number }, day: WeeklyData) => ({
+            present: acc.present + Number(day.present || 0),
+            leave: acc.leave + Number(day.leave || 0),
+            late: acc.late + Number(day.late || 0),
+            absent: acc.absent + Number(day.absent || 0),
+          }),
+          { present: 0, leave: 0, late: 0, absent: 0 }
+        );
+        setTotals(weekTotals);
       })
       .catch((err) => {
         console.error("Error fetching weekly data:", err);
@@ -83,6 +89,12 @@ function StatisticsPage() {
     { name: "ขาด", value: totals.absent, color: COLORS.absent.main },
   ];
 
+  // Format percentage - show integer if whole number, otherwise 1 decimal
+  const formatPercentage = (value: number) => {
+    const pct = (value / total) * 100;
+    return pct % 1 === 0 ? pct.toString() : pct.toFixed(1);
+  };
+
   const statCards = [
     {
       label: "เข้าร่วม",
@@ -90,7 +102,7 @@ function StatisticsPage() {
       icon: CheckCircle,
       color: COLORS.present.main,
       bgColor: "bg-emerald-50",
-      percentage: ((totals.present / total) * 100).toFixed(1),
+      percentage: formatPercentage(totals.present),
     },
     {
       label: "ลา",
@@ -98,7 +110,7 @@ function StatisticsPage() {
       icon: Pause,
       color: COLORS.leave.main,
       bgColor: "bg-violet-50",
-      percentage: ((totals.leave / total) * 100).toFixed(1),
+      percentage: formatPercentage(totals.leave),
     },
     {
       label: "สาย",
@@ -106,7 +118,7 @@ function StatisticsPage() {
       icon: Clock,
       color: COLORS.late.main,
       bgColor: "bg-amber-50",
-      percentage: ((totals.late / total) * 100).toFixed(1),
+      percentage: formatPercentage(totals.late),
     },
     {
       label: "ขาด",
@@ -114,7 +126,7 @@ function StatisticsPage() {
       icon: XCircle,
       color: COLORS.absent.main,
       bgColor: "bg-red-50",
-      percentage: ((totals.absent / total) * 100).toFixed(1),
+      percentage: formatPercentage(totals.absent),
     },
   ];
 
@@ -160,7 +172,7 @@ function StatisticsPage() {
                 className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"
                 style={{ backgroundColor: stat.color }}
               />
-              
+
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600">
@@ -333,7 +345,7 @@ function StatisticsPage() {
                 />
               </PieChart>
             </ResponsiveContainer>
-            
+
             {/* Legend */}
             <div className="flex flex-wrap md:flex-col gap-3 justify-center">
               {pieData.map((entry, index) => (
@@ -353,7 +365,7 @@ function StatisticsPage() {
               ))}
             </div>
           </div>
-          
+
           {/* Total */}
           <div className="mt-4 text-center p-4 bg-gray-50 rounded-xl">
             <div className="flex items-center justify-center gap-2">

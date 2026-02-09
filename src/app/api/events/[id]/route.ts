@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { PoolConnection } from "mariadb/*";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 
 const MARIA_DB_TABLE_EVENTS = process.env.MARIA_DB_TABLE_EVENTS;
 

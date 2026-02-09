@@ -1,9 +1,9 @@
 "use server";
 
 import { NextResponse, NextRequest } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { startOfWeek, endOfWeek } from "date-fns";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { PoolConnection } from "mariadb/*";
 
 export async function GET() {

@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { MongoDBConnection } from "@/lib/config.mongoDB.ts";
-import LineLog from "@/models/Mongo.model.LineLog.ts";
+import { MongoDBConnection } from "@/lib/config.mongoDB";
+import LineLog from "@/models/Mongo.model.LineLog";
 
 export async function GET(req: NextRequest) {
   const session = await auth();

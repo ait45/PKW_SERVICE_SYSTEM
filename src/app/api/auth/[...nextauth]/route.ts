@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handlers } from "@/lib/auth.ts";
-import { checkRatelimit } from "@/utils/ratelimit.ts";
-import { getIP } from "@/utils/getIP.ts";
+import { handlers } from "@/lib/auth";
+import { checkRatelimit } from "@/utils/ratelimit";
+import { getIP } from "@/utils/getIP";
 
 export async function GET(req: NextRequest) {
   return handlers.GET(req);

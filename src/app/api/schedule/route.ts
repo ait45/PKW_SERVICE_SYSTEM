@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextResponse, NextRequest } from "next/server";
-import { MariaDBConnection } from "@/lib/config.mariaDB.ts";
+import { MariaDBConnection } from "@/lib/config.mariaDB";
 import { PoolConnection } from "mariadb/*";
 
 export async function GET(req: NextRequest) {
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const params: (string | number)[] = [];
 
     if (classId) {
-      query += ` AND s.CLASS_ID = ?`;
+      query += ` AND s.CLASS_ID COLLATE utf8mb4_general_ci = ?`;
       params.push(classId);
     }
 

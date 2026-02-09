@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
-import readConfig from "@/scripts/readConfig.ts";
+import readConfig from "@/scripts/readConfig";
 import { promises as fs } from "fs";
 import path from "path";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const session = await auth();

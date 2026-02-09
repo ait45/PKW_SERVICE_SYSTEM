@@ -10,7 +10,7 @@ import {
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Route } from "next"; 
+import type { Route } from "next";
 import Swal from "sweetalert2";
 
 function SettingsPage() {
@@ -163,6 +163,80 @@ function SettingsPage() {
   };
 
   // สิ้นสุดฟังก์ชั่นการปิดระบบ ----------------------------------
+
+  // ฟังก์ชันรีเซ็ตข้อมูล ----------------------------------
+  const handleResetData = async (resetType: string, title: string) => {
+    // ขอยืนยันจากผู้ใช้
+    const confirmResult = await Swal.fire({
+      title: `⚠️ ${title}`,
+      html: `
+        <p class="text-red-500 font-bold">การดำเนินการนี้ไม่สามารถย้อนกลับได้!</p>
+        <p class="mt-2">กรุณาพิมพ์ <strong>CONFIRM_RESET</strong> เพื่อยืนยัน:</p>
+      `,
+      input: "text",
+      inputPlaceholder: "CONFIRM_RESET",
+      showCancelButton: true,
+      confirmButtonText: "ยืนยันรีเซ็ต",
+      cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#dc2626",
+      width: "90%",
+      preConfirm: (value) => {
+        if (value !== "CONFIRM_RESET") {
+          Swal.showValidationMessage("กรุณาพิมพ์ CONFIRM_RESET ให้ถูกต้อง");
+          return false;
+        }
+        return value;
+      },
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      Swal.fire({
+        title: "กำลังดำเนินการ...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const res = await fetch("/api/admin/reset-student-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resetType,
+          confirmPassword: "CONFIRM_RESET",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        await Swal.fire({
+          title: "รีเซ็ตสำเร็จ!",
+          text: data.message,
+          icon: "success",
+          width: "90%",
+        });
+        window.location.reload();
+      } else {
+        await Swal.fire({
+          title: "เกิดข้อผิดพลาด",
+          text: data.message || "ไม่สามารถรีเซ็ตข้อมูลได้",
+          icon: "error",
+          width: "90%",
+        });
+      }
+    } catch (error) {
+      console.error("Reset error:", error);
+      await Swal.fire({
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้",
+        icon: "error",
+        width: "90%",
+      });
+    }
+  };
+  // สิ้นสุดฟังก์ชันรีเซ็ตข้อมูล ----------------------------------
+
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const error = validateForm();
@@ -264,9 +338,8 @@ function SettingsPage() {
                   หัก
                   <input
                     type="number"
-                    className={`mx-2 px-3 py-1 w-15 border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${
-                      error.Scorededucted_lateAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    className={`mx-2 px-3 py-1 w-15 border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${error.Scorededucted_lateAttendance && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                     maxLength={1}
                     min={0}
                     name="Scorededucted_lateAttendance"
@@ -289,9 +362,8 @@ function SettingsPage() {
                   หัก
                   <input
                     type="number"
-                    className={`mx-2 px-3 py-1 w-15 border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${
-                      error.Scorededucted_absentAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
+                    className={`mx-2 px-3 py-1 w-15 border-b-2 border-gray-500 hover:border-blue-500 focus:border-blue-500 ${error.Scorededucted_absentAttendance && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500`}
                     min={0}
                     maxLength={1}
                     name="Scorededucted_absentAttendance"
@@ -323,9 +395,8 @@ function SettingsPage() {
                     value={dataSetting.AttendanceStart}
                     onChange={handleInputChange}
                     disabled={!teacher_Admin}
-                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${
-                      error.AttendanceStart && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
+                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${error.AttendanceStart && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
                   />
                 </div>
               </div>
@@ -343,9 +414,8 @@ function SettingsPage() {
                     value={dataSetting.lateThreshold}
                     onChange={handleInputChange}
                     disabled={!teacher_Admin}
-                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${
-                      error.lateThreshold && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
+                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${error.lateThreshold && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
                   />
                 </div>
               </div>
@@ -363,9 +433,8 @@ function SettingsPage() {
                     value={dataSetting.absentThreshold}
                     onChange={handleInputChange}
                     disabled={!teacher_Admin}
-                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${
-                      error.absentThreshold && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
+                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${error.absentThreshold && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
                   />
                 </div>
               </div>
@@ -383,9 +452,8 @@ function SettingsPage() {
                     value={dataSetting.timerStartEditAttendance}
                     onChange={handleInputChange}
                     disabled={!teacher_Admin}
-                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${
-                      error.timerStartEditAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
+                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${error.timerStartEditAttendance && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
                   />
                 </div>
               </div>
@@ -403,9 +471,8 @@ function SettingsPage() {
                     value={dataSetting.timerEndEditAttendance}
                     onChange={handleInputChange}
                     disabled={!teacher_Admin}
-                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${
-                      error.timerEndEditAttendance && "border-red-500"
-                    } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
+                    className={`border-b-2 border-gray-500 focus:border-blue-500 ${error.timerEndEditAttendance && "border-red-500"
+                      } transition-all outline-none disabled:cursor-not-allowed disabled:text-gray-500 disabled:border-gray-500 w-full`}
                   />
                 </div>
               </div>
@@ -417,57 +484,63 @@ function SettingsPage() {
             </div>
           </div>
           <div
-            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${
-              !teacher_Admin && "hidden"
-            }`}
+            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"
+              }`}
           >
             <h1 className="font-bold text-blue-500">ควบคุม</h1>
             <div className="flex justify-between">
               <p className="font-bold">Main System</p>
               <button
                 onClick={() => toggleMainSystem()}
-                className={`relative w-14 h-6 rounded-full transition-all duration-300 cursor-pointer ${
-                  main_active
-                    ? "bg-blue-500 shadow-md shadow-blue-500/30"
-                    : "bg-white shadow-md shadow-blue-500/30"
-                }`}
+                className={`relative w-14 h-6 rounded-full transition-all duration-300 cursor-pointer ${main_active
+                  ? "bg-blue-500 shadow-md shadow-blue-500/30"
+                  : "bg-white shadow-md shadow-blue-500/30"
+                  }`}
               >
                 <div
-                  className={`absolute top-1 left-1 w-4 h-4 ${
-                    main_active ? "bg-white" : "bg-blue-500"
-                  } rounded-full shadow-md transition-all duration-300 ${
-                    main_active ? "translate-x-8" : "translate-x-0"
-                  }`}
+                  className={`absolute top-1 left-1 w-4 h-4 ${main_active ? "bg-white" : "bg-blue-500"
+                    } rounded-full shadow-md transition-all duration-300 ${main_active ? "translate-x-8" : "translate-x-0"
+                    }`}
                 />
               </button>
             </div>
           </div>
           <div
-            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${
-              !teacher_Admin && "hidden"
-            }`}
+            className={`bg-white rounded-xl shadow-xl p-4 m-2 ${!teacher_Admin && "hidden"
+              }`}
           >
             <h1 className="font-bold text-blue-500">รีเซ็ตระบบ</h1>
-            <div className="ml-2 my-2">
+            <div className="ml-2 my-2 space-y-2">
               <button
                 type="button"
-                className="mb-2 cursor-pointer px-3 py-2 bg-[#009E7A] hover:bg-[#008264] transition-all rounded-md text-sm sm:text-base text-white"
+                onClick={() => handleResetData("scores", "รีเซ็ตคะแนนความประพฤติ")}
+                className="cursor-pointer px-3 py-2 bg-[#009E7A] hover:bg-[#008264] transition-all rounded-md text-sm sm:text-base text-white"
               >
                 รีเซ็ตคะแนนความประพฤติ
               </button>
               <br />
               <button
                 type="button"
-                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-sm sm:text-base text-white"
+                onClick={() => handleResetData("all", "รีเซ็ตข้อมูลนักเรียนทั้งหมด")}
+                className="cursor-pointer px-3 py-2 bg-red-500 hover:bg-red-700 transition-all rounded-md text-sm sm:text-base text-white"
               >
-                รีเซ็ตข้อมูลนักเรียน
+                รีเซ็ตข้อมูลนักเรียนทั้งหมด
               </button>
               <br />
               <button
                 type="button"
-                className="my-2 cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-sm sm:text-base text-white"
+                onClick={() => handleResetData("attendance", "รีเซ็ตข้อมูลการเช็คชื่อ")}
+                className="cursor-pointer px-3 py-2 bg-blue-500 hover:bg-blue-700 transition-all rounded-md text-sm sm:text-base text-white"
               >
                 รีเซ็ตข้อมูลการเช็คชื่อ
+              </button>
+              <br />
+              <button
+                type="button"
+                onClick={() => handleResetData("today_attendance", "ลบข้อมูลการเช็คชื่อวันนี้")}
+                className="cursor-pointer px-3 py-2 bg-orange-500 hover:bg-orange-700 transition-all rounded-md text-sm sm:text-base text-white"
+              >
+                ลบข้อมูลการเช็คชื่อวันนี้
               </button>
             </div>
           </div>

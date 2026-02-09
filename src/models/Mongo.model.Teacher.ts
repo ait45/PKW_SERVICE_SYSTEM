@@ -21,6 +21,10 @@ const TeacherSchema = new Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      default: "teacher",
+    },
     isAdmin: {
       type: Boolean,
       default: false,

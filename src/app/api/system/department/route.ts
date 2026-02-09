@@ -1,7 +1,7 @@
 // import โมดูลที่จำเป็นต้องใช้งาน -------------
 
 import fs from "fs";
-import { auth } from "@/lib/auth.ts";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 

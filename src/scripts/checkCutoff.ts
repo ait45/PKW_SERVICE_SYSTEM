@@ -1,7 +1,7 @@
-import { Calculate_behaviorScore } from "./behaviorScore-deduction.ts";
-import readConfig from "./readConfig.ts";
-import { Holiday } from "./Holiday.ts";
-import { MariaDBConnection } from "../lib/config.mariaDB.ts";
+import { Calculate_behaviorScore } from "./behaviorScore-deduction";
+import readConfig from "./readConfig";
+import { Holiday } from "./Holiday";
+import { MariaDBConnection } from "../lib/config.mariaDB";
 import type { PoolConnection } from "mariadb";
 
 // Environment variables
@@ -217,8 +217,8 @@ export async function autoCutoff(): Promise<AutoCutoffResult> {
 
       console.log(`[autoCutoff] Marked ${missing.length} students as absent`);
 
-      // คำนวณคะแนนพฤติกรรม
-      await Calculate_behaviorScore();
+      // คำนวณคะแนนพฤติกรรม (ส่ง connection ไปใช้ต่อ)
+      await Calculate_behaviorScore(conn);
       console.log("[autoCutoff] Behavior score calculated");
 
       return {

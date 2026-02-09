@@ -1,4 +1,4 @@
-import Admin from "./admin";
+import Admin from ".";
 
 export const metadata = {
   title: "ระบบ Student Admin",

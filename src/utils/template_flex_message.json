@@ -10,12 +10,6 @@
         "layout": "horizontal",
         "contents": [
           {
-            "type": "text",
-            "text": "📊",
-            "size": "24px",
-            "flex": 0
-          },
-          {
             "type": "box",
             "layout": "vertical",
             "contents": [
@@ -48,7 +42,7 @@
     "contents": [
       {
         "type": "text",
-        "text": "📅 วันที่ ${data.date}",
+        "text": "วันที่ ${data.date}",
         "align": "center",
         "weight": "bold",
         "size": "16px",
@@ -373,7 +367,7 @@
         "contents": [
           {
             "type": "text",
-            "text": "📈 สรุปรวมทั้งหมด",
+            "text": "สรุปรวมทั้งหมด",
             "size": "16px",
             "weight": "bold",
             "color": "#1a73e8",
@@ -456,7 +450,7 @@
             ],
             "margin": "md",
             "backgroundColor": "#e3f2fd",
-            "paddingAll": "12px",
+            "paddingAll": "8px",
             "cornerRadius": "8px"
           }
         ],
@@ -483,7 +477,7 @@
         "margin": "md"
       }
     ],
-    "paddingAll": "12px"
+    "paddingAll": "9px"
   },
   "styles": {
     "header": {

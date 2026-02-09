@@ -12,11 +12,14 @@ import {
   X,
   UserRoundPlus,
   FolderOpen,
-  RotateCcw,
   RefreshCw,
+  FileSpreadsheet,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import Swal from "sweetalert2";
-
+import ExcelImportModal from "@/app/components/ExcelImportModal";
 
 interface Student {
   studentId: string;
@@ -27,10 +30,16 @@ interface Student {
   parentPhone: string;
   Number: string;
   plantData: string;
-  isAdmin: boolean;
+  isAdmin: number;
 }
-function StudentManagement({ session, setMenu }: { session?: any, setMenu: any}) {
-  const classes: string[] = [
+function StudentManagement({
+  session,
+  setMenu,
+}: {
+  session?: any;
+  setMenu: any;
+}) {
+  const classes = [
     "มัธยมศึกษาปีที่ 1",
     "มัธยมศึกษาปีที่ 2",
     "มัธยมศึกษาปีที่ 3",
@@ -47,7 +56,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
     parentPhone: "",
     Number: "",
     plantData: "",
-    isAdmin: false,
+    isAdmin: 0,
   });
 
   const [isOpenModel, setIsOpenModel] = useState<boolean>(false);
@@ -55,6 +64,10 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   const [idUpdate, setIdUpdate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [statusFetch, setStatusFetch] = useState<boolean>(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  // Sorting states
+  const [sortBy, setSortBy] = useState<"studentId" | "name" | "classes">("studentId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const openModel = () => {
     setIsOpenModel(true);
   };
@@ -72,13 +85,17 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
         parentPhone: "",
         Number: "",
         plantData: "",
-        isAdmin: false,
+        isAdmin: 0,
       });
       setErrors({});
     }, 300);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setNewStudent((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
@@ -96,12 +113,9 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
     if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัว!";
     if (!newStudent.name) newError.name = "กรุณากรอกชื่อ!";
     if (!newStudent.classes) newError.classes = "กรุณาเลือกชั้นเรียน";
-    if (!newStudent.Number) newError.Number = "กรุณากรอกเลขที่";
-    if (!newStudent.phone) newError.phone = "กรุณากรอกเบอร์มือถือ";
-    else if (newStudent.phone.length < 12)
+    if (newStudent.phone && newStudent.phone.length < 12)
       newError.phone = "กรุณากรอกเบอร์มือถือให้ครบ";
-    if (!newStudent.parentPhone) newError.parentPhone = "กรุณากรอกเบอร์มือถือ";
-    else if (newStudent.parentPhone.length < 12)
+    if (newStudent.parentPhone && newStudent.parentPhone.length < 12)
       newError.parentPhone = "กรุณากรอกเบอร์มือถือให้ครบ";
 
     return newError;
@@ -119,9 +133,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
     document.body.classList.add("loading");
     try {
       Swal.fire({
-        titleText: `${
-          isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
-        }`,
+        titleText: `${isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
+          }`,
         icon: "question",
         width: "60%",
         showConfirmButton: true,
@@ -161,7 +174,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                 parentPhone: "",
                 Number: "",
                 plantData: "",
-                isAdmin: false,
+                isAdmin: 0,
               });
               fetchStudents();
             } else {
@@ -196,7 +209,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                   phone: "",
                   parentPhone: "",
                   Number: "",
-                  isAdmin: false,
+                  isAdmin: 0,
                 });
                 fetchStudents();
               } else if (req.status === 409) {
@@ -233,7 +246,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   };
 
   // ฟังก์ชั่นลบข้อมูลนักเรียน
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string, name?: string) => {
     Swal.fire({
       title: "ยืนยันการลบข้อมูล",
       text: `ของ ${name}`,
@@ -282,10 +295,12 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   };
 
   //อัพเดตข้อมูลนักเรียน
-  const handleUpdate = async (id: string, index?: string) => {
+  const handleUpdate = async (id: string, _index?: string) => {
     setIsOpenModel(true);
     setIsFormUpdate(true);
-    const dataBeforeUpdate = tableStudent.filter((data: any) => data._id === id);
+    const dataBeforeUpdate = tableStudent.filter(
+      (data: any) => data.studentId === id,
+    );
     setNewStudent({
       studentId: dataBeforeUpdate[0].studentId,
       password: dataBeforeUpdate[0].password,
@@ -299,8 +314,28 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
     });
     setIdUpdate(id);
   };
+  // Handle sorting
+  const handleSort = (column: "studentId" | "name" | "classes") => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  // Get sort icon
+  const getSortIcon = (column: string) => {
+    if (sortBy !== column) return <ArrowUpDown size={14} className="ml-1 text-slate-400" />;
+    return sortOrder === "asc"
+      ? <ArrowUp size={14} className="ml-1 text-blue-600" />
+      : <ArrowDown size={14} className="ml-1 text-blue-600" />;
+  };
+
   // ประกาศตัวเก็บข้อมูลของ รายชื่อนักเรียนสำหรับการแก้ไขข้อมูล
-  const [tableStudent, setTableStudent] = useState<(Student & { _id: string })[]>([]);
+  const [tableStudent, setTableStudent] = useState<
+    (Student & { _id: string })[]
+  >([]);
 
   // ฟังก์ชัน format เบอร์โทร (xxx-xxx-xxxx)
   const formatPhone = (value: string) => {
@@ -316,26 +351,24 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   const fetchStudents = async () => {
     try {
       setStatusFetch(true);
-    const res = await fetch("/api/studentManagement", {
-      method: "GET",
-      credentials: "include",
-    });
-    const data = await res.json();
-    if (data.success) {
-      setTableStudent(data.payload);
+      const res = await fetch("/api/studentManagement", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTableStudent(data.payload);
+        setStatusFetch(false);
+      }
+    } catch (error) {
+      console.error(error);
       setStatusFetch(false);
     }
-  }catch (error) {
-    console.error(error);
-    setStatusFetch(false);
-  }
   };
-
 
   useEffect(() => {
     fetchStudents();
   }, []);
-
 
   useEffect(() => {
     if (isOpenModel) document.body.style.overflow = "hidden";
@@ -355,16 +388,28 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   ];
 
   const filteredStudentSelected = useMemo(() => {
-    if (selectClasses === "ทั้งหมด") return tableStudent;
-    return tableStudent.filter((s: any) => s.classes === selectClasses);
-  }, [tableStudent, selectClasses]);
+    // Filter by class
+    const filtered = selectClasses === "ทั้งหมด"
+      ? tableStudent
+      : tableStudent.filter((s: any) => s.classes === selectClasses);
+
+    // Apply sorting
+    return [...filtered].sort((a, b) => {
+      const aValue = String(a[sortBy] ?? "");
+      const bValue = String(b[sortBy] ?? "");
+      if (sortOrder === "asc") {
+        return aValue.localeCompare(bValue, "th");
+      }
+      return bValue.localeCompare(aValue, "th");
+    });
+  }, [tableStudent, selectClasses, sortBy, sortOrder]);
 
   // Pagination ------------------------------
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [NumberPager, setNumberPager] = useState(1);
 
   const totalPages = Math.ceil(
-    (filteredStudentSelected?.length || 0) / rowsPerPage
+    (filteredStudentSelected?.length || 0) / rowsPerPage,
   );
 
   // slice data ข้อมูลหน้าปัจจุบัน
@@ -372,10 +417,14 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
   const currentData =
     filteredStudentSelected?.slice(
       (NumberPager - 1) * rowsPerPage,
-      NumberPager * rowsPerPage
+      NumberPager * rowsPerPage,
     ) || [];
 
-  const handleRowChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleRowChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
     setRowsPerPage(Number(e.target.value));
     setNumberPager(1);
   };
@@ -422,9 +471,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
                     <div
-                      className={`${
-                        isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
-                      } mr-2 text-white p-2 rounded-md`}
+                      className={`${isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
+                        } mr-2 text-white p-2 rounded-md`}
                     >
                       {isFormUpdate ? <UserPen /> : <UserPlus />}
                     </div>
@@ -466,13 +514,11 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isFormUpdate}
-                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.studentId ? "border-red-500" : "border-slate-300"
-                    } focus:ring-blue-500 ${
-                      isFormUpdate
+                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${errors.studentId ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500 ${isFormUpdate
                         ? "text-slate-400 cursor-not-allowed"
                         : "text-slate-900"
-                    }`}
+                      }`}
                     placeholder="xxxx"
                   />
                   {errors.studentId && (
@@ -493,9 +539,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                     width="80%"
                     value={newStudent.name}
                     onChange={handleInputChange}
-                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.name ? "border-red-500" : "border-slate-300"
-                    } focus:ring-blue-500`}
+                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${errors.name ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500`}
                     placeholder="xxx xxxxxx xxxxxx"
                   />
                   {errors.name && (
@@ -513,9 +558,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                       ชั้นเรียน
                     </label>
                     <select
-                      className={`px-4 py-2 h-10 md:h-12 w-fit border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.classes ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500 cursor-pointer w-[80%] text-sm  sm:text-base`}
+                      className={`px-4 py-2 h-10 md:h-12 w-fit border rounded-lg focus:outline-none focus:ring-2 ${errors.classes ? "border-red-500" : "border-slate-300"
+                        } focus:ring-blue-500 cursor-pointer w-[80%] text-sm  sm:text-base`}
                       id="classes"
                       name="classes"
                       value={newStudent.classes}
@@ -546,11 +590,10 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                       id="Number"
                       name="Number"
                       min="0"
-                      value={newStudent.Number}
+                      value={newStudent.Number || ""}
                       onChange={handleInputChange}
-                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${
-                        errors.Number ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${errors.Number ? "border-red-500" : "border-slate-300"
+                        } focus:ring-blue-500`}
                       placeholder="xx"
                     />
                     {errors.Number && (
@@ -573,7 +616,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                     <input
                       id="phoneId"
                       type="tel"
-                      value={newStudent.phone}
+                      value={newStudent.phone || ""}
                       maxLength={12}
                       onChange={(e) =>
                         setNewStudent({
@@ -582,9 +625,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                         })
                       }
                       placeholder="xxx-xxx-xxxx"
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.phone ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone ? "border-red-500" : "border-slate-300"
+                        } focus:ring-blue-500`}
                     />
                     {errors.phone && (
                       <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
@@ -602,7 +644,7 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                     <input
                       id="parentPhoneId"
                       type="tel"
-                      value={newStudent.parentPhone}
+                      value={newStudent.parentPhone || ""}
                       maxLength={12}
                       placeholder="xxx-xxx-xxxx"
                       onChange={(e) =>
@@ -611,11 +653,10 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                           parentPhone: formatPhone(e.target.value),
                         })
                       }
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.parentPhone
-                          ? "border-red-500"
-                          : "border-slate-300"
-                      } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${errors.parentPhone
+                        ? "border-red-500"
+                        : "border-slate-300"
+                        } focus:ring-blue-500`}
                     />
                     {errors.parentPhone && (
                       <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
@@ -624,44 +665,44 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                     )}
                   </div>
                 </div>
-                 {session?.user?.role === "teacher" && isFormUpdate && (
-                    <div className="flex flex-col md:flex-row">
-                      <div className="flex flex-col mt-2 md:mt-0 mr-2">
-                        <label
-                          htmlFor="plantData"
-                          className="text-sm text-slate-500 text-nowrap ml-2"
-                        >
-                          รหัสการเข้าสู่ระบบ
-                        </label>
-                        <input
-                          type="text"
-                          id="plantData"
-                          name="plantData"
-                          value={newStudent.plantData}
-                          readOnly={true}
-                          className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 text-slate-400 cursor-copy`}
-                        />
-                      </div>
-                      <div className="flex flex-col mt-2 md:mt-0">
-                        <label
-                          htmlFor="isAdminToggle"
-                          className="text-sm text-slate-500 text-nowrap ml-2"
-                        >
-                          สิทธิ์การใช้งาน
-                        </label>
-                        <select
-                          name="isAdmin"
-                          id="isAdminToggle"
-                          className="px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 cursor-pointer"
-                          value={String(newStudent.isAdmin)}
-                          onChange={handleInputChange}
-                        >
-                          <option value={String(false)}>นักเรียน</option>
-                          <option value={String(true)}>สภานักเรียน</option>
-                        </select>
-                      </div>
+                {session?.user?.role === "teacher" && isFormUpdate && (
+                  <div className="flex flex-col md:flex-row">
+                    <div className="flex flex-col mt-2 md:mt-0 mr-2">
+                      <label
+                        htmlFor="plantData"
+                        className="text-sm text-slate-500 text-nowrap ml-2"
+                      >
+                        รหัสการเข้าสู่ระบบ
+                      </label>
+                      <input
+                        type="text"
+                        id="plantData"
+                        name="plantData"
+                        value={newStudent.plantData}
+                        readOnly={true}
+                        className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 text-slate-400 cursor-copy`}
+                      />
                     </div>
-                  )}
+                    <div className="flex flex-col mt-2 md:mt-0">
+                      <label
+                        htmlFor="isAdminToggle"
+                        className="text-sm text-slate-500 text-nowrap ml-2"
+                      >
+                        สิทธิ์การใช้งาน
+                      </label>
+                      <select
+                        name="isAdmin"
+                        id="isAdminToggle"
+                        className="px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 cursor-pointer"
+                        value={newStudent.isAdmin}
+                        onChange={handleInputChange}
+                      >
+                        <option value={0}>นักเรียน</option>
+                        <option value={1}>สภานักเรียน</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end p-2">
                 {isFormUpdate ? (
@@ -690,9 +731,11 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
         <div className="flex justify-between items-center  mb-3">
           <div className="flex item-center">
             <FolderOpen className="text-blue-700 mr-3" />
-            <h1 className="text-md sm:text-lg font-bold">ข้อมูลแต่ละชั้นเรียน</h1>
+            <h1 className="text-md sm:text-lg font-bold">
+              ข้อมูลแต่ละชั้นเรียน
+            </h1>
           </div>
-          <div className="p-2 rounded-xl bg-slate-100 text-slate-600">
+          <div className="p-2 rounded-xl bg-slate-100 text-slate-600 cursor-pointer" onClick={fetchStudents}>
             <RefreshCw className={`${statusFetch ? "animate-spin" : ""}`} />
           </div>
         </div>
@@ -734,22 +777,33 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
         <div className="overflow-x-auto">
           <table className="table w-full border text-sm sm:text-md">
             <thead>
-              <tr className="bg-[#009EA3] text-white text-center border p-2">
-                <th className="px-3 py-3 whitespace-nowrap border">
-                  รหัสนักเรียน
+              <tr className="bg-blue-100 text-nowrap">
+                <th className="border border-gray-300 px-4 py-3 w-[10%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("studentId")}>
+                  <div className="flex items-center justify-center">
+                    รหัสนักเรียน
+                    {getSortIcon("studentId")}
+                  </div>
                 </th>
-                <th className="px-3 py-3 whitespace-nowrap border">
-                  ชื่อ-นามสกุล
+                <th className="border border-gray-300 px-4 py-3 w-[30%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("name")}>
+                  <div className="flex justify-center items-center">
+                    ชื่อ-นามสกุล
+                    {getSortIcon("name")}
+                  </div>
                 </th>
 
-                <th className="px-2 py-3 whitespace-nowrap border ">เบอร์โทร</th>
-                <th className="px-1 py-3 whitespace-nowrap  border ">
+                <th className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none">
+                  เบอร์โทร
+                </th>
+                <th className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none">
                   เบอร์โทรผู้ปกครอง
                 </th>
-                <th className="px-2 py-3 whitespace-nowrap border">
-                  ชั้นเรียน
+                <th className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("classes")}>
+                  <div className="flex justify-center items-center">
+                    ชั้นเรียน
+                    {getSortIcon("classes")}
+                  </div>
                 </th>
-                <th className="px-3 py-3 whitespace-nowrap border">
+                <th className="border border-gray-300 px-6 py-3 w-[20%] cursor-pointer hover:bg-blue-200 transition-colors select-none">
                   การดำเนินการ
                 </th>
               </tr>
@@ -757,7 +811,10 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
             <tbody>
               {currentData.length > 0 ? (
                 currentData.map((value: any, index: any) => (
-                  <tr key={index} className="text-center border-b border-l border-r border-blue-100">
+                  <tr
+                    key={index}
+                    className="text-center border-b border-l border-r border-blue-100"
+                  >
                     <td className="whitespace-nowrap p-2 text-[#009EA3]">
                       {value.studentId || "ไม่มีข้อมูล"}
                     </td>
@@ -780,23 +837,27 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
                         {value.classes || "ไม่มีข้อมูล"}
                       </div>
                     </td>
-                    
+
                     <td>
                       <div className="flex justify-center-safe items-center-safe">
-                      <button
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md mr-5"
-                        onClick={() => handleUpdate(value._id, value.name)}
-                      >
-                        <UserPen className="w-4 h-4 mr-2"/>
-                        <p className="text-white">แก้ไข</p>
-                      </button>
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md"
-                        onClick={() => handleDelete(value._id, value.name)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        <p className="text-white">ลบ</p>
-                      </button>
+                        <button
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md mr-5"
+                          onClick={() =>
+                            handleUpdate(value.studentId, value.name)
+                          }
+                        >
+                          <UserPen className="w-4 h-4 mr-2" />
+                          <p className="text-white">แก้ไข</p>
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md"
+                          onClick={() =>
+                            handleDelete(value.studentId, value.name)
+                          }
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          <p className="text-white">ลบ</p>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -827,9 +888,8 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
               <button
                 key={Page}
                 onClick={() => setNumberPager(Page)}
-                className={`mr-3 ${
-                  Page === NumberPager && "bg-blue-400 text-white "
-                } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
+                className={`mr-3 ${Page === NumberPager && "bg-blue-400 text-white "
+                  } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
               >
                 {Page}
               </button>
@@ -845,6 +905,13 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
         </div>
         <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
           <button
+            title="นำเข้าข้อมูลนักเรียนจาก Excel"
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+          >
+            <FileSpreadsheet className="w-6 h-6" />
+          </button>
+          <button
             title="ดาวน์โหลดข้อมูลนักเรียน"
             onClick={() => setMenu("PDFDownload")}
             className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
@@ -852,6 +919,12 @@ function StudentManagement({ session, setMenu }: { session?: any, setMenu: any})
             <BookOpen className="w-6 h-6" />
           </button>
         </div>
+        <ExcelImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          importType="student"
+          onSuccess={fetchStudents}
+        />
       </div>
     </div>
   );
