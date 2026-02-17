@@ -1,0 +1,18 @@
+{
+  "AttendanceStart": "08:00",
+  "lateThreshold": "08:30",
+  "absentThreshold": "09:00",
+  "timerStartEditAttendance": "08:00",
+  "timerEndEditAttendance": "08:30",
+  "Scorededucted_lateAttendance": "0.5",
+  "Scorededucted_absentAttendance": "0",
+  "autoCutoff": {
+    "enabled": false,
+    "maxRetries": 0,
+    "retryDelayMs": 0
+  },
+  "system": {
+    "main_active": true
+  },
+  "updatedAt": "2026-02-17T18:48:00.000Z"
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Home,
   Settings,
@@ -16,6 +16,9 @@ import {
   SquarePen,
   LucideIcon,
   RotateCcwKey,
+  CalendarClock,
+  ShieldCheck,
+  CalendarDays,
 } from "lucide-react";
 
 interface MenuItem {
@@ -65,8 +68,15 @@ const defaultMenuGroups: MenuGroup[] = [
     ],
   },
   {
+    title: "ย้อนหลัง",
+    items: [
+      { id: "retroactiveAttendance", label: "เช็คชื่อย้อนหลัง", icon: CalendarClock },
+    ],
+  },
+  {
     title: "ระบบ",
     items: [
+      { id: "holidays", label: "จัดการวันหยุด", icon: CalendarDays },
       { id: "settings", label: "ตั้งค่า", icon: Settings },
     ],
   },
@@ -81,6 +91,8 @@ function SideBarTeacher({
 }: SideBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [pendingIssuesCount, setPendingIssuesCount] = useState(0);
+  const [pendingRetroactiveCount, setPendingRetroactiveCount] = useState(0);
+  const isAdmin = session?.user?.isAdmin === true;
 
   const fetchPendingIssues = useCallback(async () => {
     try {
@@ -94,12 +106,50 @@ function SideBarTeacher({
     }
   }, []);
 
+  const fetchPendingRetroactive = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch("/api/scanAttendance/retroactive?pending=true");
+      const data = await res.json();
+      if (data.success) {
+        const pendingCount = (data.payload || []).filter((r: any) => r.status === "pending").length;
+        setPendingRetroactiveCount(pendingCount);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending retroactive:", error);
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     fetchPendingIssues();
+    fetchPendingRetroactive();
     // Refresh every 30 seconds
-    const interval = setInterval(fetchPendingIssues, 30000);
+    const interval = setInterval(() => {
+      fetchPendingIssues();
+      fetchPendingRetroactive();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchPendingIssues]);
+  }, [fetchPendingIssues, fetchPendingRetroactive]);
+
+  // เพิ่มเมนูอนุมัติคำขอย้อนหลังสำหรับ Admin เท่านั้น
+  const finalMenuGroups = useMemo(() => {
+    if (!isAdmin) return menuGroups;
+    return menuGroups.map((group) => {
+      if (group.title === "ย้อนหลัง") {
+        const hasApproval = group.items.some((i) => i.id === "retroactiveApproval");
+        if (!hasApproval) {
+          return {
+            ...group,
+            items: [
+              ...group.items,
+              { id: "retroactiveApproval", label: "อนุมัติคำขอย้อนหลัง", icon: ShieldCheck },
+            ],
+          };
+        }
+      }
+      return group;
+    });
+  }, [menuGroups, isAdmin]);
 
   // Sync collapse state with parent component
   useEffect(() => {
@@ -159,7 +209,7 @@ function SideBarTeacher({
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-2 overflow-y-scroll hide-scrollbar">
-        {menuGroups.map((group, groupIndex) => (
+        {finalMenuGroups.map((group, groupIndex) => (
           <div key={group.title} className={groupIndex > 0 ? "mt-4" : ""}>
             {/* Group Title */}
             {!isCollapsed && (
@@ -176,7 +226,7 @@ function SideBarTeacher({
               {group.items.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = activeMenu === item.id;
-                const badgeCount = item.id === "messages" ? pendingIssuesCount : 0;
+                const badgeCount = item.id === "messages" ? pendingIssuesCount : item.id === "retroactiveApproval" ? pendingRetroactiveCount : 0;
 
                 return (
                   <li key={item.id}>

@@ -716,6 +716,230 @@ export const SkeletonEventManagement = () => (
   </div>
 );
 
+// Table Attendance skeleton (today's attendance page)
+export const SkeletonTableAttendance = () => (
+  <main className="max-w-7xl mx-auto p-2 sm:p-4">
+    {/* Header */}
+    <div className="bg-gray-300 rounded-xl p-4 sm:p-6 mb-4 animate-pulse">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl bg-white/20" />
+          <div>
+            <div className="h-6 w-40 bg-white/20 rounded mb-2" />
+            <div className="h-4 w-56 bg-white/20 rounded" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-10 w-36 bg-white/20 rounded-lg" />
+          <div className="w-10 h-10 bg-white/20 rounded-lg" />
+        </div>
+      </div>
+    </div>
+
+    {/* Summary Cards */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-100 rounded-xl p-3 animate-pulse">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-4 h-4 bg-gray-200 rounded" />
+            <div className="h-3 w-12 bg-gray-200 rounded" />
+          </div>
+          <div className="h-7 w-10 bg-gray-200 rounded" />
+        </div>
+      ))}
+    </div>
+
+    {/* Controls */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 animate-pulse">
+      <div className="flex flex-wrap gap-3 items-end">
+        <div>
+          <div className="h-3 w-20 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-56 bg-gray-100 rounded-lg" />
+        </div>
+        <div>
+          <div className="h-3 w-14 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-36 bg-gray-100 rounded-lg" />
+        </div>
+        <div>
+          <div className="h-3 w-8 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-16 bg-gray-100 rounded-lg" />
+        </div>
+      </div>
+    </div>
+
+    {/* Table */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Table Header */}
+      <div className="bg-gray-50 border-b border-gray-100 px-4 py-3.5 flex gap-4">
+        <div className="h-4 w-[18%] bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 flex-1 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-[18%] bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-[22%] bg-gray-200 rounded animate-pulse" />
+      </div>
+      {/* Table Rows */}
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div key={i} className="px-4 py-3 border-b border-gray-50 flex gap-4 items-center animate-pulse">
+          <div className="h-4 w-[18%] bg-gray-200 rounded" />
+          <div className="h-4 flex-1 bg-gray-200 rounded" />
+          <div className="h-4 w-[18%] bg-gray-200 rounded" />
+          <div className="h-6 w-[22%] bg-gray-200 rounded-lg" />
+        </div>
+      ))}
+      {/* Footer */}
+      <div className="border-t border-gray-100 px-4 py-3 flex justify-between items-center animate-pulse">
+        <div className="flex gap-1">
+          <div className="h-7 w-16 bg-gray-200 rounded-md" />
+          <div className="h-7 w-8 bg-gray-200 rounded-md" />
+          <div className="h-7 w-8 bg-gray-200 rounded-md" />
+          <div className="h-7 w-16 bg-gray-200 rounded-md" />
+        </div>
+        <div className="h-10 w-40 bg-gray-200 rounded-xl" />
+      </div>
+    </div>
+  </main>
+);
+
+// Retroactive Attendance skeleton
+export const SkeletonRetroactiveAttendance = () => (
+  <main className="max-w-7xl mx-auto p-2 sm:p-4">
+    {/* Header */}
+    <div className="bg-gray-300 rounded-xl p-4 sm:p-6 mb-4 animate-pulse">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl bg-white/20" />
+          <div>
+            <div className="h-6 w-40 bg-white/20 rounded mb-2" />
+            <div className="h-4 w-48 bg-white/20 rounded" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-10 w-36 bg-white/20 rounded-lg" />
+          <div className="w-10 h-10 bg-white/20 rounded-lg" />
+        </div>
+      </div>
+      <div className="mt-3 h-8 w-48 bg-white/10 rounded-lg" />
+    </div>
+
+    {/* Summary Cards */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-100 rounded-xl p-3 animate-pulse">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-4 h-4 bg-gray-200 rounded" />
+            <div className="h-3 w-12 bg-gray-200 rounded" />
+          </div>
+          <div className="h-7 w-10 bg-gray-200 rounded" />
+        </div>
+      ))}
+    </div>
+
+    {/* Controls */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 animate-pulse">
+      <div className="flex flex-wrap gap-3 items-end">
+        <div>
+          <div className="h-3 w-20 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-56 bg-gray-100 rounded-lg" />
+        </div>
+        <div>
+          <div className="h-3 w-14 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-36 bg-gray-100 rounded-lg" />
+        </div>
+        <div>
+          <div className="h-3 w-8 bg-gray-200 rounded mb-1" />
+          <div className="h-9 w-16 bg-gray-100 rounded-lg" />
+        </div>
+      </div>
+    </div>
+
+    {/* Table */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-gray-50 border-b border-gray-100 px-4 py-3.5 flex gap-4">
+        <div className="h-4 w-[18%] bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 flex-1 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-[18%] bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-[22%] bg-gray-200 rounded animate-pulse" />
+      </div>
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div key={i} className="px-4 py-3 border-b border-gray-50 flex gap-4 items-center animate-pulse">
+          <div className="h-4 w-[18%] bg-gray-200 rounded" />
+          <div className="h-4 flex-1 bg-gray-200 rounded" />
+          <div className="h-4 w-[18%] bg-gray-200 rounded" />
+          <div className="h-6 w-[22%] bg-gray-200 rounded-lg" />
+        </div>
+      ))}
+      <div className="border-t border-gray-100 px-4 py-3 flex justify-between items-center animate-pulse">
+        <div className="flex gap-1">
+          <div className="h-7 w-16 bg-gray-200 rounded-md" />
+          <div className="h-7 w-8 bg-gray-200 rounded-md" />
+          <div className="h-7 w-8 bg-gray-200 rounded-md" />
+          <div className="h-7 w-16 bg-gray-200 rounded-md" />
+        </div>
+        <div className="h-10 w-40 bg-gray-200 rounded-xl" />
+      </div>
+    </div>
+  </main>
+);
+
+// Retroactive Approval skeleton
+export const SkeletonRetroactiveApproval = () => (
+  <main className="max-w-7xl mx-auto p-2 sm:p-4">
+    {/* Header */}
+    <div className="bg-gray-300 rounded-xl p-4 sm:p-6 mb-4 animate-pulse">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl bg-white/20" />
+          <div>
+            <div className="h-6 w-56 bg-white/20 rounded mb-2" />
+            <div className="h-4 w-48 bg-white/20 rounded" />
+          </div>
+        </div>
+        <div className="w-10 h-10 bg-white/20 rounded-lg" />
+      </div>
+      <div className="flex gap-3 mt-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-9 w-32 bg-white/15 rounded-lg" />
+        ))}
+      </div>
+    </div>
+
+    {/* Filter Tabs */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1.5 mb-4 flex gap-1 animate-pulse">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-9 w-28 bg-gray-100 rounded-lg" />
+      ))}
+    </div>
+
+    {/* Request Cards */}
+    <div className="space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+          <div className="h-1 bg-gray-200" />
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="h-6 w-24 bg-gray-200 rounded-full" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-5 w-32 bg-gray-200 rounded" />
+                  <div className="h-4 w-20 bg-gray-100 rounded" />
+                </div>
+                <div className="flex gap-3">
+                  <div className="h-3 w-28 bg-gray-100 rounded" />
+                  <div className="h-3 w-16 bg-gray-100 rounded" />
+                  <div className="h-3 w-32 bg-gray-100 rounded" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1.5">
+              <div className="h-8 w-20 bg-gray-200 rounded-lg" />
+              <div className="h-8 w-20 bg-gray-200 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </main>
+);
+
 // Export all components
 export default {
   SkeletonPulse,
@@ -734,4 +958,7 @@ export default {
   SkeletonNotifications,
   SkeletonLineUserManagement,
   SkeletonEventManagement,
+  SkeletonTableAttendance,
+  SkeletonRetroactiveAttendance,
+  SkeletonRetroactiveApproval,
 };

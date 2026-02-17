@@ -1,7 +1,7 @@
 {
   "name": "pkw-attendance-system",
-  "version": "0.1.2",
-  "private": false,
+  "version": "0.2.2",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server.ts",

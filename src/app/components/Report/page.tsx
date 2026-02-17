@@ -199,6 +199,22 @@ function ReportPage() {
             </a>
           </div>
         </div>
+        <div className="text-sm mt-4">
+          <h1>- สรุปการเข้าแถวประจำเดือน</h1>
+          <div className="flex m-2">
+            <Link
+              href={`${pathname}?${searchParams}&type=monthly-summary` as Route}
+              className="flex items-center mr-2 text-blue-700"
+            >
+              <FileOutput />
+              ไฟล์ PDF
+            </Link>
+            <a href="#" className="flex items-center text-green-700">
+              <FileSpreadsheet />
+              ไฟล์ Excel
+            </a>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -31,6 +31,9 @@ import TeacherBoard from "@/app/components/TeacherBoard";
 import IssueReportManagement from "@/app/components/IssueReportManagement";
 import PasswordResetManagement from "@/app/components/PasswordResetManagement";
 import BehaviorScore from "@/app/components/BehaviorScore";
+import RetroactiveAttendance from "@/app/components/RetroactiveAttendance";
+import RetroactiveApproval from "@/app/components/RetroactiveApproval";
+import HolidayManagement from "@/app/components/HolidayManagement";
 
 function AdminPage() {
   const { data: session, status } = useSession();
@@ -117,6 +120,9 @@ function AdminPage() {
           {currentPage === "messages" && <IssueReportManagement />}
           {currentPage === "forgetPasswordMess" && <PasswordResetManagement />}
           {currentPage === "behaviorScore" && <BehaviorScore />}
+          {currentPage === "retroactiveAttendance" && <RetroactiveAttendance session={session} />}
+          {currentPage === "retroactiveApproval" && <RetroactiveApproval />}
+          {currentPage === "holidays" && <HolidayManagement />}
         </main>
       </div>
       <Footer />

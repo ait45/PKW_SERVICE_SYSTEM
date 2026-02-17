@@ -262,6 +262,48 @@ export const multicastFlexMessage = async (
   }
 };
 
+// ฟังก์ชันส่ง Flex Message ไปยังกลุ่ม (Group)
+export const sendFlexMessageToGroup = async (
+  groupId: string,
+  flexMessage: FlexMessage,
+  sentBy?: string,
+): Promise<void> => {
+  try {
+    await lineClient.pushMessage({
+      to: groupId,
+      messages: [flexMessage],
+    });
+    console.log("ส่ง Flex Message ไปยังกลุ่มสำเร็จ");
+
+    // บันทึก log
+    await saveLineLog({
+      messageType: "push",
+      recipientType: "group",
+      recipientId: groupId,
+      recipientCount: 1,
+      altText: flexMessage.altText,
+      status: "success",
+      sentBy: sentBy,
+    });
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการส่งไปยังกลุ่ม:", error);
+
+    // บันทึก log error
+    await saveLineLog({
+      messageType: "push",
+      recipientType: "group",
+      recipientId: groupId,
+      recipientCount: 1,
+      altText: flexMessage.altText,
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message : String(error),
+      sentBy: sentBy,
+    });
+
+    throw error;
+  }
+};
+
 // ตัวอย่างการใช้งาน
 // สร้างข้อมูลสรุป
 // const summaryData: AttendanceSummaryData = {

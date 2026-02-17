@@ -110,6 +110,14 @@ export async function autoCutoff(): Promise<AutoCutoffResult> {
   // ตรวจสอบวันหยุด
   const holiday = Holiday(now);
   if (holiday.isHoliday) {
+    // วันหยุดแบบ auto_present → เช็คชื่อมาทั้งหมดอัตโนมัติ
+    if (holiday.type === "auto_present") {
+      console.log(
+        `[autoCutoff] Auto-present day: ${holiday.name} (status: ${holiday.status})`,
+      );
+      return autoMarkAllPresent(holiday.status || "เข้าร่วมกิจกรรม");
+    }
+    // วันหยุดปกติ → ข้าม
     console.log(`[autoCutoff] Skipped - Holiday: ${holiday.name}`);
     return {
       success: true,
@@ -245,6 +253,121 @@ export async function autoCutoff(): Promise<AutoCutoffResult> {
     if (conn) {
       conn.release(); // ใช้ release() แทน end() สำหรับ connection pool
     }
+  }
+}
+
+/**
+ * เช็คชื่อนักเรียนทั้งหมดอัตโนมัติ (วันกิจกรรม/เรียนออนไลน์)
+ * - ใช้สำหรับวันหยุดแบบ auto_present
+ * - เช็คชื่อเฉพาะนักเรียนที่ยังไม่มี record วันนี้
+ */
+async function autoMarkAllPresent(status: string): Promise<AutoCutoffResult> {
+  const HANDLER = "system-auto";
+  let conn: PoolConnection | undefined;
+
+  try {
+    if (!StudentTable_ENV || !attendanceTable) {
+      throw new Error("Database table ENV variables not defined");
+    }
+
+    conn = await MariaDBConnection.getConnection();
+
+    // ดึงนักเรียนทั้งหมด
+    const students = await conn.query(
+      `SELECT STUDENT_ID, NAME, CLASSES FROM ${StudentTable_ENV}`,
+    );
+    const totalStudents = students.length;
+
+    if (totalStudents === 0) {
+      return {
+        success: true,
+        skipped: true,
+        reason: "no_students",
+        studentsMarked: 0,
+        totalStudents: 0,
+      };
+    }
+
+    // ตรวจสอบว่าเช็คชื่อวันนี้ไปแล้วหรือยัง (ป้องกันซ้ำ)
+    const checkedToday = await conn.query(
+      `SELECT STUDENT_ID FROM ${attendanceTable} WHERE DATE(CREATED_AT) = CURDATE()`,
+    );
+    const checkedIds = new Set(
+      checkedToday.map((s: { STUDENT_ID: string }) => s.STUDENT_ID),
+    );
+
+    // หานักเรียนที่ยังไม่มี record
+    const missing = students.filter(
+      (student: { STUDENT_ID: string }) => !checkedIds.has(student.STUDENT_ID),
+    );
+
+    if (missing.length === 0) {
+      console.log("[autoMarkAllPresent] All students already have records");
+      return {
+        success: true,
+        skipped: true,
+        reason: "all_checked",
+        studentsMarked: 0,
+        totalStudents,
+      };
+    }
+
+    // INSERT ด้วย transaction
+    await conn.beginTransaction();
+    try {
+      const baseTime = new Date();
+      const insertData = missing.map(
+        (
+          student: { STUDENT_ID: string; NAME: string; CLASSES: string },
+          index: number,
+        ) => {
+          const timestamp = new Date(baseTime.getTime() + index);
+          return [
+            HANDLER,
+            student.STUDENT_ID,
+            student.NAME,
+            student.CLASSES,
+            status,
+            timestamp,
+          ];
+        },
+      );
+
+      const placeholders = insertData
+        .map(() => "(?, ?, ?, ?, ?, ?)")
+        .join(", ");
+      const flatValues = insertData.flat();
+      const queryInsert = `INSERT INTO ${attendanceTable} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, CREATED_AT) VALUES ${placeholders}`;
+
+      await conn.query(queryInsert, flatValues);
+      await conn.commit();
+
+      console.log(
+        `[autoMarkAllPresent] Marked ${missing.length} students as "${status}"`,
+      );
+
+      return {
+        success: true,
+        skipped: false,
+        studentsMarked: missing.length,
+        totalStudents,
+      };
+    } catch (insertError) {
+      await conn.rollback();
+      throw insertError;
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("[autoMarkAllPresent] Error:", errorMessage);
+    return {
+      success: false,
+      skipped: false,
+      error: errorMessage,
+      studentsMarked: 0,
+      totalStudents: 0,
+    };
+  } finally {
+    if (conn) conn.release();
   }
 }
 

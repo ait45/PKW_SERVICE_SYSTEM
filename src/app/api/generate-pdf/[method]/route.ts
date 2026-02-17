@@ -901,6 +901,160 @@ export async function GET(
     }
   }
 
+  // รายงานสรุปการเข้าแถวประจำเดือน ----------------------------
+  if (method === "monthly-summary") {
+    try {
+      await MongoDBConnection();
+      const filename = getFileName("monthly-summary");
+      const data_student = await Student.find();
+
+      // ดึงเดือนปัจจุบัน
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const thaiMonthNames = [
+        "มกราคม",
+        "กุมภาพันธ์",
+        "มีนาคม",
+        "เมษายน",
+        "พฤษภาคม",
+        "มิถุนายน",
+        "กรกฎาคม",
+        "สิงหาคม",
+        "กันยายน",
+        "ตุลาคม",
+        "พฤศจิกายน",
+        "ธันวาคม",
+      ];
+      const monthName = thaiMonthNames[currentMonth];
+      const thaiYear = currentYear + 543;
+
+      const doc = new PDFDocument({
+        size: "A4",
+        margin: 30,
+        info: {
+          Title: `สรุปการเข้าแถวประจำเดือน ${monthName} ${thaiYear}`,
+          Author: NameService,
+        },
+      });
+
+      registerFonts(doc);
+
+      const buffers: any[] = [];
+      doc.on("data", buffers.push.bind(buffers));
+      const pdfPromise = new Promise(async (resolve, reject) => {
+        let pageNumber = 1;
+
+        // จัดข้อมูลตามชั้นเรียน
+        const groupByClass = data_student.reduce(
+          (acc: Record<string, any[]>, cur) => {
+            if (!acc[cur.classes]) acc[cur.classes] = [];
+            acc[cur.classes].push(cur);
+            return acc;
+          },
+          {} as Record<string, any[]>,
+        );
+
+        // loop ชั้นเรียนแต่ละชั้น
+        let index = 0;
+        const lastIndex = Object.keys(groupByClass).length - 1;
+        for (const classes of Object.keys(groupByClass)) {
+          HeaderPage(doc);
+          WaterMarkPage(doc);
+
+          const classStudent = groupByClass[classes];
+          const isLast = index === lastIndex;
+
+          doc
+            .font("THSarabunNew bold")
+            .fontSize(24)
+            .text(
+              `สรุปการเข้าแถวประจำเดือน ${monthName} พ.ศ. ${thaiYear}`,
+              doc.page.margins.left,
+              doc.page.margins.top + 65,
+              { align: "center" },
+            );
+          doc
+            .font("THSarabunNew normal")
+            .fontSize(16)
+            .text(
+              `ระดับชั้น : ${classes}`,
+              doc.page.margins.left,
+              doc.page.margins.top + 90,
+              { align: "center" },
+            );
+
+          // สร้างตาราง
+          const headers = [
+            { text: "ลำดับ" },
+            { text: "รหัสนักเรียน" },
+            { text: "ชื่อ-สกุล" },
+            "มา",
+            "ลา",
+            "สาย",
+            "ขาด",
+            "รวม",
+          ];
+          const data = classStudent.map((s: any, idx: number) => {
+            const join = s.joinDays || 0;
+            const leave = s.leaveDays || 0;
+            const late = s.lateDays || 0;
+            const absent = s.absentDays || 0;
+            const total = join + leave + late + absent;
+            return [
+              idx + 1,
+              s.studentId,
+              { text: s.name },
+              join,
+              leave,
+              late,
+              absent,
+              total,
+            ];
+          });
+          const tableData = [headers, ...data];
+
+          doc.font("THSarabunNew normal").table({
+            position: {
+              x: doc.page.margins.left + 10,
+              y: doc.page.margins.top + 120,
+            },
+            columnStyles: [35, 80, 180, 40, 40, 40, 40, 40],
+            data: tableData,
+          });
+
+          FooterPage(doc, pageNumber, "RP-monthly");
+          pageNumber++;
+          index++;
+          if (!isLast) doc.addPage();
+        }
+
+        doc.end();
+        doc.on("end", () => resolve(Buffer.concat(buffers)));
+        doc.on("error", reject);
+      });
+
+      const pdfBuffer = await pdfPromise;
+
+      return new NextResponse(pdfBuffer as unknown as BodyInit, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename=${encodeURIComponent(filename)}`,
+        },
+      });
+    } catch (error) {
+      console.error("PDF Generate failed: ", error);
+      return NextResponse.json(
+        {
+          error: "Internal Server Error",
+          message: error,
+          code: "INTERNAL_ERROR",
+        },
+        { status: 500 },
+      );
+    }
+  }
+
   return NextResponse.json(
     { error: "Bad Request", message: "คำขอไม่ถูกต้อง", code: "BAD_REQUEST" },
     { status: 400 },

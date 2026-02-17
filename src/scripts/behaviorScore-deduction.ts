@@ -1,6 +1,6 @@
 import { MariaDBConnection } from "../lib/config.mariaDB";
 import type { PoolConnection } from "mariadb";
-import readConfig from "./readConfig";
+import readConfig from "./readConfig.ts";
 
 const startOfDay = new Date();
 startOfDay.setHours(0, 0, 0, 0);
@@ -159,69 +159,69 @@ export async function update_behaviorScore(
         WHERE STUDENT_ID = ?
       `;
 
-      const values = [
-        diffComeDays,
-        diffLeaveDays,
-        diffLateDays,
-        diffAbsentDays,
-        diffBehaviorScore,
-        studentId,
-      ];
+        const values = [
+          diffComeDays,
+          diffLeaveDays,
+          diffLateDays,
+          diffAbsentDays,
+          diffBehaviorScore,
+          studentId,
+        ];
 
-      await conn.execute(sql, values);
-      console.log("[BehaviorScore-Deduction] Calculate successfully...");
+        await conn.execute(sql, values);
+        console.log("[BehaviorScore-Deduction] Calculate successfully...");
       } else {
         const queryData_old: string = `SELECT STUDENT_ID, STATUS FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CHECK_DATE) = CURDATE()`;
-      const old_data_attendance = await conn.execute(queryData_old, [
-        studentId,
-      ]);
-      if (!old_data_attendance) return;
-      const statusOld = old_data_attendance[0].STATUS;
-      // ---------------------------------------------------------
-      // 2. จัดการ "สถานะเก่า" (state) -> คือการถอนค่าเดิมออก (Revert)
-      // ---------------------------------------------------------
-      // สังเกต: ฝั่ง Revert ถ้าเป็นคะแนนต้อง "บวกคืน" (+)
-      switch (statusOld) {
-        case "เข้าร่วมกิจกรรม":
-          diffComeDays -= 1; // ลบออกจากวันมา
-          break;
-        case "ลา":
-          diffLeaveDays -= 1;
-          break;
-        case "สาย":
-          diffLateDays -= 1;
-          diffBehaviorScore += scoreDeductLate; // คืนคะแนนกลับไป
-          break;
-        case "ขาด":
-          diffAbsentDays -= 1;
-          diffBehaviorScore += scoreDeductAbsent; // คืนคะแนนกลับไป
-          break;
-      }
+        const old_data_attendance = await conn.execute(queryData_old, [
+          studentId,
+        ]);
+        if (!old_data_attendance) return;
+        const statusOld = old_data_attendance[0].STATUS;
+        // ---------------------------------------------------------
+        // 2. จัดการ "สถานะเก่า" (state) -> คือการถอนค่าเดิมออก (Revert)
+        // ---------------------------------------------------------
+        // สังเกต: ฝั่ง Revert ถ้าเป็นคะแนนต้อง "บวกคืน" (+)
+        switch (statusOld) {
+          case "เข้าร่วมกิจกรรม":
+            diffComeDays -= 1; // ลบออกจากวันมา
+            break;
+          case "ลา":
+            diffLeaveDays -= 1;
+            break;
+          case "สาย":
+            diffLateDays -= 1;
+            diffBehaviorScore += scoreDeductLate; // คืนคะแนนกลับไป
+            break;
+          case "ขาด":
+            diffAbsentDays -= 1;
+            diffBehaviorScore += scoreDeductAbsent; // คืนคะแนนกลับไป
+            break;
+        }
 
-      const queryUpdate: string = `UPDATE ${attendance_Table} SET STATUS = ? WHERE STUDENT_ID = ? AND DATE(CHECK_DATE) = CURDATE()`;
-      await conn.execute(queryUpdate, [NewStatus, studentId]);
+        const queryUpdate: string = `UPDATE ${attendance_Table} SET STATUS = ? WHERE STUDENT_ID = ? AND DATE(CHECK_DATE) = CURDATE()`;
+        await conn.execute(queryUpdate, [NewStatus, studentId]);
 
-      // ---------------------------------------------------------
-      // 3. จัดการ "สถานะใหม่" (status) -> คือการใส่ค่าใหม่เข้าไป (Apply)
-      // ---------------------------------------------------------
-      // สังเกต: ฝั่ง Apply ถ้าเป็นคะแนนต้อง "ลบออก" (-)
-      switch (NewStatus) {
-        case "เข้าร่วมกิจกรรม":
-          diffComeDays += 1; // บวกเพิ่มวันมา
-          break;
-        case "ลา":
-          diffLeaveDays += 1;
-          break;
-        case "สาย":
-          diffLateDays += 1;
-          diffBehaviorScore -= scoreDeductLate; // หักคะแนน
-          break;
-        case "ขาด":
-          diffAbsentDays += 1;
-          diffBehaviorScore -= scoreDeductAbsent; // หักคะแนน
-          break;
-      }
-      const sql = `
+        // ---------------------------------------------------------
+        // 3. จัดการ "สถานะใหม่" (status) -> คือการใส่ค่าใหม่เข้าไป (Apply)
+        // ---------------------------------------------------------
+        // สังเกต: ฝั่ง Apply ถ้าเป็นคะแนนต้อง "ลบออก" (-)
+        switch (NewStatus) {
+          case "เข้าร่วมกิจกรรม":
+            diffComeDays += 1; // บวกเพิ่มวันมา
+            break;
+          case "ลา":
+            diffLeaveDays += 1;
+            break;
+          case "สาย":
+            diffLateDays += 1;
+            diffBehaviorScore -= scoreDeductLate; // หักคะแนน
+            break;
+          case "ขาด":
+            diffAbsentDays += 1;
+            diffBehaviorScore -= scoreDeductAbsent; // หักคะแนน
+            break;
+        }
+        const sql = `
         UPDATE ${data_student_Table} 
         SET 
           JOIN_DAYS = JOIN_DAYS + ?,
@@ -232,20 +232,162 @@ export async function update_behaviorScore(
         WHERE STUDENT_ID = ?
       `;
 
-      const values = [
+        const values = [
+          diffComeDays,
+          diffLeaveDays,
+          diffLateDays,
+          diffAbsentDays,
+          diffBehaviorScore,
+          studentId,
+        ];
+
+        await conn.execute(sql, values);
+      }
+    }
+    console.log(
+      "[BehaviorScore-Deduction] update_behaviorScore successfully...",
+    );
+  } catch (error) {
+    throw error;
+  } finally {
+    if (conn) conn.release();
+  }
+}
+
+/**
+ * อัพเดตคะแนนพฤติกรรมย้อนหลัง (ใช้ targetDate แทน CURDATE())
+ */
+export async function update_behaviorScore_retroactive(
+  list: Array<{
+    isNew: boolean;
+    studentId: string;
+    name: string;
+    classes: string;
+    status: string;
+    handler?: string | "Teacher";
+  }>,
+  targetDate: string, // format: YYYY-MM-DD
+): Promise<void> {
+  let conn: PoolConnection | undefined;
+  try {
+    console.log(`[BehaviorScore-Retroactive] start for date: ${targetDate}`);
+
+    conn = await MariaDBConnection.getConnection();
+    const setting = await readConfig();
+
+    for (const item of list) {
+      const { isNew, studentId, status, handler } = item;
+
+      let diffComeDays = 0;
+      let diffLeaveDays = 0;
+      let diffLateDays = 0;
+      let diffAbsentDays = 0;
+      let diffBehaviorScore = 0;
+
+      const scoreDeductLate = Number(setting.Scorededucted_lateAttendance || 0);
+      const scoreDeductAbsent = Number(
+        setting.Scorededucted_absentAttendance || 0,
+      );
+
+      if (isNew) {
+        // INSERT ข้อมูลใหม่ย้อนหลัง
+        const query = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, CREATED_AT) VALUES (?, ?, ?, ?, ?, ?)`;
+        const dateTimestamp = new Date(`${targetDate}T08:00:00`);
+        await conn.execute(query, [
+          handler || "retroactive",
+          studentId,
+          item.name,
+          item.classes,
+          status,
+          dateTimestamp,
+        ]);
+
+        switch (status) {
+          case "เข้าร่วมกิจกรรม":
+            diffComeDays += 1;
+            break;
+          case "ลา":
+            diffLeaveDays += 1;
+            break;
+          case "สาย":
+            diffLateDays += 1;
+            diffBehaviorScore -= scoreDeductLate;
+            break;
+          case "ขาด":
+            diffAbsentDays += 1;
+            diffBehaviorScore -= scoreDeductAbsent;
+            break;
+        }
+      } else {
+        // แก้ไขสถานะย้อนหลัง — Revert สถานะเก่า + Apply สถานะใหม่
+        const queryOld = `SELECT STUDENT_ID, STATUS FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CREATED_AT) = ?`;
+        const oldData = await conn.execute(queryOld, [studentId, targetDate]);
+        if (!oldData || oldData.length === 0) continue;
+        const statusOld = oldData[0].STATUS;
+
+        // Revert สถานะเก่า
+        switch (statusOld) {
+          case "เข้าร่วมกิจกรรม":
+            diffComeDays -= 1;
+            break;
+          case "ลา":
+            diffLeaveDays -= 1;
+            break;
+          case "สาย":
+            diffLateDays -= 1;
+            diffBehaviorScore += scoreDeductLate;
+            break;
+          case "ขาด":
+            diffAbsentDays -= 1;
+            diffBehaviorScore += scoreDeductAbsent;
+            break;
+        }
+
+        // UPDATE สถานะใหม่
+        const queryUpdate = `UPDATE ${attendance_Table} SET STATUS = ? WHERE STUDENT_ID = ? AND DATE(CREATED_AT) = ?`;
+        await conn.execute(queryUpdate, [status, studentId, targetDate]);
+
+        // Apply สถานะใหม่
+        switch (status) {
+          case "เข้าร่วมกิจกรรม":
+            diffComeDays += 1;
+            break;
+          case "ลา":
+            diffLeaveDays += 1;
+            break;
+          case "สาย":
+            diffLateDays += 1;
+            diffBehaviorScore -= scoreDeductLate;
+            break;
+          case "ขาด":
+            diffAbsentDays += 1;
+            diffBehaviorScore -= scoreDeductAbsent;
+            break;
+        }
+      }
+
+      // อัพเดต student summary
+      const sql = `
+        UPDATE ${data_student_Table} 
+        SET 
+          JOIN_DAYS = JOIN_DAYS + ?,
+          LEAVE_DAYS = LEAVE_DAYS + ?,
+          LATE_DAYS = LATE_DAYS + ?,
+          ABSENT_DAYS = ABSENT_DAYS + ?,
+          BEHAVIOR_SCORE = BEHAVIOR_SCORE + ?
+        WHERE STUDENT_ID = ?
+      `;
+      await conn.execute(sql, [
         diffComeDays,
         diffLeaveDays,
         diffLateDays,
         diffAbsentDays,
         diffBehaviorScore,
         studentId,
-      ];
-
-      await conn.execute(sql, values);
-      }
-      
+      ]);
     }
-    console.log("[BehaviorScore-Deduction] update_behaviorScore successfully...");
+
+    console.log("[BehaviorScore-Retroactive] completed successfully");
   } catch (error) {
     throw error;
   } finally {

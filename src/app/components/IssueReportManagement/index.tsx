@@ -243,7 +243,7 @@ export default function IssueReportManagement() {
               <div><p className="text-xs text-gray-500 mb-1">หมายเหตุ Admin</p>
                 <textarea value={editData.adminNote} onChange={(e) => setEditData({ ...editData, adminNote: e.target.value })} rows={3} className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="เพิ่มหมายเหตุ..." />
               </div>
-              <button onClick={handleUpdate} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">{statusSubmit && <LoaderCircle className="animate-spin"/>}บันทึก</button>
+              <button onClick={handleUpdate} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center">{statusSubmit && <LoaderCircle className="animate-spin"/>}บันทึก</button>
             </div>
           </div>
         </div>

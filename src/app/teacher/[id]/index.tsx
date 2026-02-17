@@ -44,6 +44,7 @@ import IssueReportManagement from "@/app/components/IssueReportManagement";
 import PasswordResetManagement from "@/app/components/PasswordResetManagement";
 import DownloadPdf from "@/app/components/QRDownload";
 import BehaviorScore from "@/app/components/BehaviorScore";
+import RetroactiveAttendance from "@/app/components/RetroactiveAttendance";
 
 function TeacherPage() {
   const router = useRouter();
@@ -131,6 +132,7 @@ function TeacherPage() {
           {currentPage === "forgetPasswordMess" && <PasswordResetManagement />}
           {currentPage === "PDFDownload" && <DownloadPdf setBack={handleChangePage} />}
           {currentPage === "behaviorScore" && <BehaviorScore />}
+          {currentPage === "retroactiveAttendance" && <RetroactiveAttendance session={session} />}
         </main>
       </main>
       <Footer />

@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = await req.json();
-
-    const filePath = path.join(process.cwd(), "config", "settings.json");
+    console.log(data);
+    const filePath = path.join(process.cwd(), "config", "setting.json");
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf-8");
 
     return NextResponse.json(

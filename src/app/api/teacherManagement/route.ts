@@ -35,7 +35,6 @@ export async function GET(req: NextRequest) {
       },
       { status: 403 },
     );
-
   let conn: PoolConnection | undefined;
   try {
     conn = await MariaDBConnection.getConnection();
@@ -55,13 +54,17 @@ export async function GET(req: NextRequest) {
     const payload = await conn.query(query, params);
 
     return NextResponse.json(
-      { success: true, message: payload },
+      { success: true, message: payload, code: "SUCCESS" },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { success: false, message: error },
+      {
+        error: "Internal server error",
+        message: error,
+        code: "INTERNAL_SERVER_ERROR",
+      },
       { status: 500 },
     );
   } finally {
@@ -133,7 +136,7 @@ export async function POST(req: NextRequest) {
       isAdmin || false,
     ]);
     // add account to system login
-    
+    const passwordLogin = await genPassword(6);
     await Teacher.create({
       teacherId: teacherId,
       name: name,
@@ -144,7 +147,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(
       { success: true, message: "เพิ่มข้อมูลครูสำเร็จ", code: "SUCCESSFULLY" },
-      { status: 201 },
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
@@ -205,7 +208,7 @@ export async function PUT(req: NextRequest) {
     }
 
     conn = await MariaDBConnection.getConnection();
-    
+
     // ถ้ามีการเปลี่ยนรหัสผ่าน
     if (password) {
       const query = `UPDATE ${process.env.MARIA_DB_TABLE_TEACHERS} SET 
@@ -227,7 +230,7 @@ export async function PUT(req: NextRequest) {
       const hashPass = await bcrypt.hash(password, 10);
       await Teacher.updateOne(
         { teacherId: teacherId },
-        { $set: { name: name, password: hashPass, isAdmin: isAdmin } }
+        { $set: { name: name, password: hashPass, isAdmin: isAdmin } },
       );
     } else {
       // ไม่เปลี่ยนรหัสผ่าน
@@ -246,10 +249,10 @@ export async function PUT(req: NextRequest) {
       ]);
       console.log(isAdmin);
       // อัพเดตข้อมูลใน MongoDB ด้วย
-       await Teacher.updateOne(
-         { teacherId: teacherId },
-         { $set: { name: name, isAdmin: isAdmin } }
-       );
+      await Teacher.updateOne(
+        { teacherId: teacherId },
+        { $set: { name: name, isAdmin: isAdmin } },
+      );
     }
 
     return NextResponse.json(

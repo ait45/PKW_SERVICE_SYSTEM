@@ -8,8 +8,8 @@ import next from "next";
 import rateLimit from "express-rate-limit";
 import "dotenv/config";
 import cron from "node-cron";
-import { autoCutoffWithRetry } from "./src/scripts/checkCutoff.ts";
-import { sendDailyReport } from "./src/scripts/dailyReport.ts";
+import { autoCutoffWithRetry } from "./src/scripts/checkCutoff";
+import { sendDailyReport } from "./src/scripts/dailyReport";
 import path from "path";
 import fs from "fs";
 import cookie from "cookie";
@@ -194,7 +194,9 @@ app.prepare().then(() => {
         try {
           const result = await sendDailyReport();
           if (result.success) {
-            console.log(`[cron] Daily report sent to ${result.userCount} users`);
+            console.log(
+              `[cron] Daily report sent to ${result.userCount} users`,
+            );
           } else {
             console.log(`[cron] Daily report failed: ${result.message}`);
           }
@@ -204,7 +206,7 @@ app.prepare().then(() => {
       },
       {
         timezone: "Asia/Bangkok",
-      }
+      },
     );
     console.log("> Daily report cron scheduled (09:00 Mon-Fri, Asia/Bangkok)");
   });
