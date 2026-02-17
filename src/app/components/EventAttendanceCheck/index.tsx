@@ -101,8 +101,16 @@ function EventAttendanceCheck({ session }: { session: any }) {
     }
   };
 
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   useEffect(() => {
     fetchEvents();
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -231,7 +239,7 @@ function EventAttendanceCheck({ session }: { session: any }) {
   };
 
   return (
-    <div className="p-4">
+    <main className="p-4 h-screen">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-center mb-4">
@@ -265,27 +273,84 @@ function EventAttendanceCheck({ session }: { session: any }) {
         </div>
 
         {/* Event Info Card */}
+        {/* Event Info Card */}
         {selectedEvent && (
-          <div className="bg-linear-to-r from-emerald-50 to-teal-50 rounded-xl p-4 mb-6 border border-emerald-200">
-            <h3 className="font-bold text-lg text-emerald-800 mb-2">
-              {selectedEvent.NAME}
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div className="flex items-center text-slate-600">
+          <div className="bg-linear-to-r from-emerald-50 to-teal-50 rounded-xl p-4 mb-6 border border-emerald-200 overflow-x-scroll">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
+              <h3 className="font-bold text-lg text-emerald-800">
+                {selectedEvent.NAME}
+              </h3>
+              <div className="mt-2 md:mt-0">
+                {(() => {
+                  const now = new Date();
+                  const eventDate = new Date(selectedEvent.EVENT_DATE);
+                  const [startHour, startMinute] = selectedEvent.START_TIME.split(
+                    ":"
+                  ).map(Number);
+                  const [endHour, endMinute] = selectedEvent.END_TIME.split(
+                    ":"
+                  ).map(Number);
+
+                  const startTime = new Date(eventDate);
+                  startTime.setHours(startHour, startMinute, 0);
+
+                  const endTime = new Date(eventDate);
+                  endTime.setHours(endHour, endMinute, 0);
+
+                  // Adjust for date only comparison if needed, or full datetime
+                  // Assuming EVENT_DATE is "YYYY-MM-DD"
+                  // If current time is before start time
+                  let statusEl;
+
+                  if (now < startTime) {
+                    statusEl = (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
+                        กำลังจะมาถึง
+                      </span>
+                    );
+                  } else if (now >= startTime && now <= endTime) {
+                    statusEl = (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 animate-pulse">
+                        <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-ping"></span>
+                        กำลังดำเนินอยู่
+                      </span>
+                    );
+                  } else {
+                    statusEl = (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                        <span className="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                        จบกิจกรรมแล้ว
+                      </span>
+                    );
+                  }
+                  return statusEl;
+                })()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm p-2">
+              <div className="flex items-center text-slate-600 p-2">
                 <Calendar size={16} className="mr-2 text-emerald-600" />
-                {formatDate(selectedEvent.EVENT_DATE)}
+                <p className="text-nowrap">
+                  {formatDate(selectedEvent.EVENT_DATE)}
+                </p>
               </div>
-              <div className="flex items-center text-slate-600">
+              <div className="flex items-center text-slate-600 p-2">
                 <Clock size={16} className="mr-2 text-emerald-600" />
-                {selectedEvent.START_TIME} - {selectedEvent.END_TIME}
+                <p className="text-nowrap">
+                  {selectedEvent.START_TIME} - {selectedEvent.END_TIME}
+                </p>
               </div>
-              <div className="flex items-center text-slate-600">
+              <div className="flex items-center text-slate-600 p-2">
                 <Timer size={16} className="mr-2 text-emerald-600" />
-                {selectedEvent.PERIODS} คาบ
+                <p className="text-nowrap">{selectedEvent.PERIODS} คาบ</p>
               </div>
-              <div className="flex items-center text-slate-600">
+              <div className="flex items-center text-slate-600 p-2">
                 <Users size={16} className="mr-2 text-emerald-600" />
-                {selectedEvent.TARGET_CLASSES || "ทุกชั้น"}
+                <p className="text-nowrap">
+                  {selectedEvent.TARGET_CLASSES || "ทุกชั้น"}
+                </p>
               </div>
             </div>
           </div>
@@ -294,7 +359,7 @@ function EventAttendanceCheck({ session }: { session: any }) {
         {/* QR Scanner and Manual Input */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* QR Scanner */}
-          <div className="text-center">
+            <div className="h-auto">
             <QRScanning
               onScan={(value: any) => setQrData(value)}
               holiday={!selectedEventId}
@@ -379,7 +444,7 @@ function EventAttendanceCheck({ session }: { session: any }) {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

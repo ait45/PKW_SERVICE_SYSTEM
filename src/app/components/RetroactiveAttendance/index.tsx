@@ -444,7 +444,7 @@ function RetroactiveAttendance({ session }: { session: any }) {
                   ].map((col) => (
                     <th
                       key={col.key}
-                      className={`px-4 py-3.5 ${col.width} cursor-pointer hover:bg-amber-100/50 transition-colors select-none text-left`}
+                      className={`px-4 py-3.5 ${col.width} cursor-pointer hover:bg-amber-100/50 transition-colors select-none text-left text-nowrap`}
                       onClick={() => handleSort(col.key as any)}
                     >
                       <div className="flex items-center text-gray-600 font-semibold">
@@ -469,8 +469,8 @@ function RetroactiveAttendance({ session }: { session: any }) {
                         <td className="px-4 py-3">
                           <span className="font-mono text-[#009EA3] font-medium">{row.studentId}</span>
                         </td>
-                        <td className="px-4 py-3 text-gray-800">{row.name}</td>
-                        <td className="px-4 py-3 text-gray-600 text-nowrap">{row.classes}</td>
+                        <td className="px-4 py-3 text-gray-800 text-nowrap">{row.name}</td>
+                        <td className="px-4 py-3 text-gray-600 text-nowrap"><div className="p-2 bg-blue-100 text-blue-500 rounded-md">{row.classes}</div></td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${getStatusDot(row.status)} shrink-0`} />

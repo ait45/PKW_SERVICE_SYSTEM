@@ -272,7 +272,7 @@ function EventAttendanceTable({ session }: { session: any }) {
   const selectedEvent = events.find((e) => e.ID === selectedEventId);
 
   return (
-    <div className="p-4">
+    <main className="p-4">
       <div className="bg-white rounded-lg shadow-lg p-4">
         {/* Header */}
         <div className="flex items-center mb-4">
@@ -416,12 +416,12 @@ function EventAttendanceTable({ session }: { session: any }) {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {!selectedEventId ? (
                 <tr>
                   <td
                     colSpan={4}
-                    className="border border-slate-300 px-4 py-8 text-center text-slate-500"
+                    className=" px-4 py-8 text-center text-slate-500"
                   >
                     กรุณาเลือกกิจกรรม
                   </td>
@@ -430,18 +430,18 @@ function EventAttendanceTable({ session }: { session: any }) {
                 currentData.map((row) => (
                   <tr
                     key={row.studentId}
-                    className="bg-slate-50 text-center hover:bg-slate-100"
+                    className="bg-slate-50 text-center hover:bg-slate-100 font-mono"
                   >
-                    <td className="border border-slate-300 text-[#009EA3] px-4 py-3">
+                    <td className=" text-[#009EA3] px-4 py-3 text-nowrap">
                       {row.studentId}
                     </td>
-                    <td className="border border-slate-300 px-4 py-3 text-left">
+                    <td className=" px-4 py-3 text-left text-nowrap">
                       {row.name}
                     </td>
-                    <td className="border border-slate-300 px-4 py-3">
-                      {row.classes}
+                    <td className=" px-4 py-3 text-nowrap">
+                      <div className="p-2 rounded-md bg-blue-100 text-blue-500">{row.classes}</div>
                     </td>
-                    <td className="border border-slate-300 px-4 py-3">
+                    <td className=" px-4 py-3">
                       <select
                         value={row.status}
                         onChange={(e) =>
@@ -492,19 +492,20 @@ function EventAttendanceTable({ session }: { session: any }) {
 
         {/* Pagination */}
         {selectedEventId && mergedData.length > 0 && (
-          <div className="flex justify-between items-center mt-4 text-sm">
+          <div className="flex-col sm:flex justify-between items-center mt-4 mb-2 text-sm">
             <p className="text-slate-500">
               แสดง {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, mergedData.length)} จาก{" "}
               {mergedData.length} รายการ
             </p>
-            <div className="flex gap-2">
+            <hr className="sm:hidden p-2"/>
+            <div className="flex">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border rounded-md hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Prev
+                ย้อนกลับ
               </button>
               <span className="px-3 py-1">
                 {currentPage} / {totalPages || 1}
@@ -514,15 +515,15 @@ function EventAttendanceTable({ session }: { session: any }) {
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage >= totalPages}
-                className="px-3 py-1 border rounded-md hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className=" hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                ต่อไป
               </button>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 
