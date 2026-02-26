@@ -57,8 +57,13 @@ export async function GET() {
     const query = `SELECT * FROM ${TABLE_STUDENTS}`;
     const data = await conn.query(query);
 
-    const studentCouncil = session?.user?.role === "student" && session?.user?.isAdmin === true;
-    if (session?.user?.role === "teacher" || session?.user?.role === "admin" || studentCouncil) {
+    const studentCouncil =
+      session?.user?.role === "student" && session?.user?.isAdmin === true;
+    if (
+      session?.user?.role === "teacher" ||
+      session?.user?.role === "admin" ||
+      studentCouncil
+    ) {
       const payload = data.map((index: DataStudent) => {
         return {
           _id: index._id,
@@ -125,7 +130,7 @@ export async function POST(req: NextRequest) {
 
   let conn: PoolConnection | undefined;
   try {
-    const { studentId, name, classes, phone, parentPhone, Number } =
+    const { studentId, name, classes, phone, parentPhone, number } =
       await req.json();
     const plantData = await genPassword(5);
     const password = await bcrypt.hash(plantData, 10);
@@ -139,7 +144,7 @@ export async function POST(req: NextRequest) {
       phone,
       parentPhone,
       plantData,
-      Number,
+      number,
     ]);
     await MongoDBConnection();
     await Student.create({

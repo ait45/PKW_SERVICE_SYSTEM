@@ -72,25 +72,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               role: user.role || "teacher",
               isAdmin: user.isAdmin,
             };
-          } else if (username === process.env.USER_LOGIN){
+          } else if (username === process.env.USER_LOGIN) {
             if (password === process.env.PASS_LOGIN) {
               return {
-              id: "1",
-              username: process.env.USER_LOGIN,
-              name: "Admin",
-              role: "teacher",
-              isAdmin: true,
-            }
-          } else {
-            throw new AuthError("ชื่อผู้ใช้ไม่ถูกต้อง");
+                id: "1",
+                username: process.env.USER_LOGIN,
+                name: "Admin",
+                role: "teacher",
+                isAdmin: true,
+              };
+            } else {
+              throw new AuthError("รหัสผ่านไม่ถูกต้อง");
             }
           } else {
             // Pad leading zeros ให้ครบ 5 หลัก เพื่อรองรับ studentId ที่มี 0 นำหน้า
-            const paddedUsername = username.padStart(5, '0');
-            
+
             const user: UserDocument | null =
               await Student.findOne<UserDocument>({
-                studentId: paddedUsername,
+                studentId: username,
               });
 
             if (!user) {

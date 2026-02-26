@@ -30,7 +30,7 @@ interface UserData {
   NAME: string;
   CLASSES: string;
   IS_ADMIN: boolean;
-  NUMBER: number;
+  NUMBER: string;
   JOIN_DAYS: number;
   LEAVE_DAYS: number;
   LATE_DAYS: number;
@@ -91,7 +91,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     NAME: "",
     CLASSES: "",
     IS_ADMIN: false,
-    NUMBER: 0,
+    NUMBER: "",
     JOIN_DAYS: 0,
     LEAVE_DAYS: 0,
     LATE_DAYS: 0,
@@ -117,12 +117,14 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   const fetchDataUser = async () => {
     try {
       setLoading(true);
-      const req = await fetch(`/api/studentManagement/${session?.user?.username}`);
+      const req = await fetch(
+        `/api/studentManagement/${session?.user?.username}`,
+      );
       const data = await req.json();
       setDataUser(data.data);
 
       const req_attendance = await fetch(
-        `/api/scanAttendance/${session?.user?.username}`
+        `/api/scanAttendance/${session?.user?.username}`,
       );
       if (req_attendance.status === 404) return;
       const data_attendance_raw = await req_attendance.json();
@@ -146,7 +148,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
       setLoadingSchedule(true);
       const today = new Date().getDay() || 1;
       const res = await fetch(
-        `/api/schedule?classId=${encodeURIComponent(DataUser.CLASSES)}&dayOfWeek=${today}`
+        `/api/schedule?classId=${encodeURIComponent(DataUser.CLASSES)}&dayOfWeek=${today}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -165,16 +167,18 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
       const res = await fetch("/api/studentManagement");
       const data = await res.json();
       if (data.payload && Array.isArray(data.payload)) {
-        setStudentList(data.payload.map((s: any) => ({
-          studentId: s.studentId,
-          name: s.name,
-          classes: s.classes,
-          joinDays: s.joinDays || 0,
-          leaveDays: s.leaveDays || 0,
-          lateDays: s.lateDays || 0,
-          absentDays: s.adsentDays || 0,
-          behaviorScore: s.behaviorScore || 100,
-        })));
+        setStudentList(
+          data.payload.map((s: any) => ({
+            studentId: s.studentId,
+            name: s.name,
+            classes: s.classes,
+            joinDays: s.joinDays || 0,
+            leaveDays: s.leaveDays || 0,
+            lateDays: s.lateDays || 0,
+            absentDays: s.adsentDays || 0,
+            behaviorScore: s.behaviorScore || 100,
+          })),
+        );
       }
     } catch (error) {
       console.error("Error fetching student list:", error);
@@ -188,10 +192,10 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   }, []);
 
   useEffect(() => {
-    if (DataUser.CLASSES) {
+    if (DataUser?.CLASSES) {
       fetchSchedule();
     }
-  }, [DataUser.CLASSES]);
+  }, [DataUser?.CLASSES]);
 
   useEffect(() => {
     if (selectedTab === "students") {
@@ -203,11 +207,16 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClass = classFilter === "ทั้งหมด" || student.classes === classFilter;
+    const matchesClass =
+      classFilter === "ทั้งหมด" || student.classes === classFilter;
     return matchesSearch && matchesClass;
   });
 
-  const totalDays = DataUser.JOIN_DAYS + DataUser.ABSENT_DAYS + DataUser.LATE_DAYS + DataUser.LEAVE_DAYS || 1;
+  const totalDays =
+    DataUser.JOIN_DAYS +
+      DataUser.ABSENT_DAYS +
+      DataUser.LATE_DAYS +
+      DataUser.LEAVE_DAYS || 1;
 
   if (loading) {
     return <SkeletonStudentDashboard />;
@@ -246,7 +255,10 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
             <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${Math.min(parseFloat(percentage), 100)}%`, backgroundColor: color }}
+                style={{
+                  width: `${Math.min(parseFloat(percentage), 100)}%`,
+                  backgroundColor: color,
+                }}
               />
             </div>
             <span className="text-xs text-gray-500">{percentage}%</span>
@@ -262,14 +274,25 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     </div>
   );
 
-  const TabButton = ({ id, label, icon: Icon, badge }: { id: string; label: string; icon: any; badge?: number }) => (
+  const TabButton = ({
+    id,
+    label,
+    icon: Icon,
+    badge,
+  }: {
+    id: string;
+    label: string;
+    icon: any;
+    badge?: number;
+  }) => (
     <button
       title={label}
       onClick={() => setSelectedTab(id)}
-      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${selectedTab === id
-        ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
-        : "text-gray-600 hover:bg-white/80 hover:shadow-md"
-        }`}
+      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${
+        selectedTab === id
+          ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
+          : "text-gray-600 hover:bg-white/80 hover:shadow-md"
+      }`}
     >
       <Icon className="w-5 h-5" />
       <span className="hidden md:inline">{label}</span>
@@ -284,15 +307,35 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   const getStatusStyles = (status: string) => {
     switch (status) {
       case "มา":
-        return { bg: "bg-gradient-to-r from-emerald-500 to-green-600", icon: CheckCircle, text: "เข้าร่วมกิจกรรม" };
+        return {
+          bg: "bg-gradient-to-r from-emerald-500 to-green-600",
+          icon: CheckCircle,
+          text: "เข้าร่วมกิจกรรม",
+        };
       case "ลา":
-        return { bg: "bg-gradient-to-r from-blue-500 to-indigo-600", icon: Pause, text: "ลา" };
+        return {
+          bg: "bg-gradient-to-r from-blue-500 to-indigo-600",
+          icon: Pause,
+          text: "ลา",
+        };
       case "สาย":
-        return { bg: "bg-gradient-to-r from-amber-500 to-orange-600", icon: Clock, text: "มาสาย" };
+        return {
+          bg: "bg-gradient-to-r from-amber-500 to-orange-600",
+          icon: Clock,
+          text: "มาสาย",
+        };
       case "ขาด":
-        return { bg: "bg-gradient-to-r from-red-500 to-rose-600", icon: XCircle, text: "ขาด" };
+        return {
+          bg: "bg-gradient-to-r from-red-500 to-rose-600",
+          icon: XCircle,
+          text: "ขาด",
+        };
       default:
-        return { bg: "bg-gradient-to-r from-gray-400 to-gray-500", icon: CircleAlert, text: "ยังไม่มีสถานะ" };
+        return {
+          bg: "bg-gradient-to-r from-gray-400 to-gray-500",
+          icon: CircleAlert,
+          text: "ยังไม่มีสถานะ",
+        };
     }
   };
 
@@ -377,7 +420,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                 <QrCode className="w-6 h-6 text-rose-600 group-hover:text-rose-700" />
               </button>
 
-              <div className={`${statusStyles.bg} rounded-2xl p-4 text-white shadow-lg min-w-[140px]`}>
+              <div
+                className={`${statusStyles.bg} rounded-2xl p-4 text-white shadow-lg min-w-[140px]`}
+              >
                 <div className="flex items-center gap-3">
                   <StatusIcon className="w-8 h-8" />
                   <div>
@@ -402,7 +447,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
           <TabButton id="attendance" label="การเข้าเรียน" icon={Calendar} />
           <TabButton id="schedule" label="ตารางเรียน" icon={BookOpen} />
           <TabButton id="behavior" label="ความประพฤติ" icon={Award} />
-          <TabButton id="students" label="ข้อมูลนักเรียน" icon={Users} badge={studentList.length} />
+          <TabButton
+            id="students"
+            label="ข้อมูลนักเรียน"
+            icon={Users}
+            badge={studentList.length}
+          />
         </div>
 
         {/* Overview Tab */}
@@ -435,7 +485,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                 value={DataUser.ABSENT_DAYS}
                 color="#EF4444"
                 gradient="bg-gradient-to-br from-red-400 to-rose-500"
-                percentage={((DataUser.ABSENT_DAYS / totalDays) * 100).toFixed(0)}
+                percentage={((DataUser.ABSENT_DAYS / totalDays) * 100).toFixed(
+                  0,
+                )}
               />
               <AttendanceCard
                 icon={Clock}
@@ -451,7 +503,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                 value={DataUser.LEAVE_DAYS}
                 color="#EC4899"
                 gradient="bg-gradient-to-br from-pink-400 to-rose-500"
-                percentage={((DataUser.LEAVE_DAYS / totalDays) * 100).toFixed(0)}
+                percentage={((DataUser.LEAVE_DAYS / totalDays) * 100).toFixed(
+                  0,
+                )}
               />
             </div>
 
@@ -469,32 +523,35 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     </h3>
                   </div>
                   <TrendingUp
-                    className={`w-5 h-5 ${DataUser.BEHAVIOR_SCORE >= 80
-                      ? "text-emerald-500"
-                      : "text-amber-500"
-                      }`}
+                    className={`w-5 h-5 ${
+                      DataUser.BEHAVIOR_SCORE >= 80
+                        ? "text-emerald-500"
+                        : "text-amber-500"
+                    }`}
                   />
                 </div>
 
                 <div className="text-center">
                   <div
-                    className={`text-6xl font-bold mb-4 ${DataUser.BEHAVIOR_SCORE >= 80
-                      ? "text-emerald-500"
-                      : DataUser.BEHAVIOR_SCORE >= 60
-                        ? "text-amber-500"
-                        : "text-red-500"
-                      }`}
+                    className={`text-6xl font-bold mb-4 ${
+                      DataUser.BEHAVIOR_SCORE >= 80
+                        ? "text-emerald-500"
+                        : DataUser.BEHAVIOR_SCORE >= 60
+                          ? "text-amber-500"
+                          : "text-red-500"
+                    }`}
                   >
                     {DataUser.BEHAVIOR_SCORE}
                   </div>
                   <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${DataUser.BEHAVIOR_SCORE >= 80
-                        ? "bg-linear-to-r from-emerald-400 to-green-500"
-                        : DataUser.BEHAVIOR_SCORE >= 60
-                          ? "bg-linear-to-r from-amber-400 to-orange-500"
-                          : "bg-linear-to-r from-red-400 to-rose-500"
-                        }`}
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
+                        DataUser.BEHAVIOR_SCORE >= 80
+                          ? "bg-linear-to-r from-emerald-400 to-green-500"
+                          : DataUser.BEHAVIOR_SCORE >= 60
+                            ? "bg-linear-to-r from-amber-400 to-orange-500"
+                            : "bg-linear-to-r from-red-400 to-rose-500"
+                      }`}
                       style={{ width: `${DataUser.BEHAVIOR_SCORE}%` }}
                     />
                   </div>
@@ -528,7 +585,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     </div>
                   ) : schedule.length > 0 ? (
                     schedule.slice(0, 4).map((item) => {
-                      const periodInfo = periodTimes.find((p) => p.period === item.PERIOD);
+                      const periodInfo = periodTimes.find(
+                        (p) => p.period === item.PERIOD,
+                      );
                       return (
                         <div
                           key={item.ID}
@@ -538,9 +597,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                             {item.PERIOD}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{item.SUBJECT}</p>
+                            <p className="font-medium text-gray-900">
+                              {item.SUBJECT}
+                            </p>
                             <p className="text-xs text-gray-500">
-                              {periodInfo?.time} • {item.TEACHER_NAME || "ไม่ระบุ"}
+                              {periodInfo?.time} •{" "}
+                              {item.TEACHER_NAME || "ไม่ระบุ"}
                             </p>
                           </div>
                           {item.ROOM && (
@@ -583,25 +645,38 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                 {[
                   { label: "วันเรียนทั้งหมด", value: totalDays, color: "blue" },
-                  { label: "เข้าร่วม", value: DataUser.JOIN_DAYS, color: "emerald" },
+                  {
+                    label: "เข้าร่วม",
+                    value: DataUser.JOIN_DAYS,
+                    color: "emerald",
+                  },
                   { label: "ขาด", value: DataUser.ABSENT_DAYS, color: "red" },
                   { label: "สาย", value: DataUser.LATE_DAYS, color: "amber" },
                   { label: "ลา", value: DataUser.LEAVE_DAYS, color: "rose" },
                 ].map((stat) => (
-                  <div key={stat.label} className={`text-center p-4 rounded-2xl bg-${stat.color}-50`}>
-                    <p className={`text-3xl font-bold text-${stat.color}-600`}>{stat.value}</p>
+                  <div
+                    key={stat.label}
+                    className={`text-center p-4 rounded-2xl bg-${stat.color}-50`}
+                  >
+                    <p className={`text-3xl font-bold text-${stat.color}-600`}>
+                      {stat.value}
+                    </p>
                     <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
                   </div>
                 ))}
               </div>
 
               <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">อัตราการเข้าเรียน</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  อัตราการเข้าเรียน
+                </h3>
                 <div className="flex items-center gap-4">
                   <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-linear-to-r from-emerald-400 to-green-500 transition-all duration-1000"
-                      style={{ width: `${(DataUser.JOIN_DAYS / totalDays) * 100}%` }}
+                      style={{
+                        width: `${(DataUser.JOIN_DAYS / totalDays) * 100}%`,
+                      }}
                     />
                   </div>
                   <span className="text-xl font-bold text-emerald-600">
@@ -617,8 +692,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
         {selectedTab === "schedule" && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20 animate-fadeIn">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">ตารางเรียนประจำวัน</h2>
-              <span className="text-sm text-gray-500">{DataUser.CLASSES || "ไม่ระบุชั้น"}</span>
+              <h2 className="text-xl font-semibold text-gray-900">
+                ตารางเรียนประจำวัน
+              </h2>
+              <span className="text-sm text-gray-500">
+                {DataUser.CLASSES || "ไม่ระบุชั้น"}
+              </span>
             </div>
 
             {loadingSchedule ? (
@@ -630,27 +709,50 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-4 px-4 font-semibold text-gray-900">คาบ</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-900">เวลา</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-900">วิชา</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-900">ครูผู้สอน</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-900">ห้องเรียน</th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-900">
+                        คาบ
+                      </th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-900">
+                        เวลา
+                      </th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-900">
+                        วิชา
+                      </th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-900">
+                        ครูผู้สอน
+                      </th>
+                      <th className="text-left py-4 px-4 font-semibold text-gray-900">
+                        ห้องเรียน
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {schedule.map((item) => {
-                      const periodInfo = periodTimes.find((p) => p.period === item.PERIOD);
+                      const periodInfo = periodTimes.find(
+                        (p) => p.period === item.PERIOD,
+                      );
                       return (
-                        <tr key={item.ID} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                        <tr
+                          key={item.ID}
+                          className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                        >
                           <td className="py-4 px-4">
                             <span className="inline-flex items-center justify-center w-8 h-8 bg-rose-100 text-rose-600 rounded-lg font-bold">
                               {item.PERIOD}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-gray-600">{periodInfo?.time}</td>
-                          <td className="py-4 px-4 font-medium text-gray-900">{item.SUBJECT}</td>
-                          <td className="py-4 px-4 text-gray-600">{item.TEACHER_NAME || "-"}</td>
-                          <td className="py-4 px-4 text-gray-600">{item.ROOM || "-"}</td>
+                          <td className="py-4 px-4 text-gray-600">
+                            {periodInfo?.time}
+                          </td>
+                          <td className="py-4 px-4 font-medium text-gray-900">
+                            {item.SUBJECT}
+                          </td>
+                          <td className="py-4 px-4 text-gray-600">
+                            {item.TEACHER_NAME || "-"}
+                          </td>
+                          <td className="py-4 px-4 text-gray-600">
+                            {item.ROOM || "-"}
+                          </td>
                         </tr>
                       );
                     })}
@@ -671,25 +773,48 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
           <div className="space-y-6 animate-fadeIn">
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/20">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">ประวัติความประพฤติ</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  ประวัติความประพฤติ
+                </h2>
                 <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-amber-400 to-yellow-500 rounded-xl text-white">
                   <Award size={18} />
-                  <span className="font-semibold">{DataUser.BEHAVIOR_SCORE} คะแนน</span>
+                  <span className="font-semibold">
+                    {DataUser.BEHAVIOR_SCORE} คะแนน
+                  </span>
                 </div>
               </div>
 
               <div className="p-6 bg-linear-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100">
-                <h3 className="font-semibold text-rose-900 mb-4">เกณฑ์การประเมิน</h3>
+                <h3 className="font-semibold text-rose-900 mb-4">
+                  เกณฑ์การประเมิน
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
-                    { range: "80-100", label: "ดีเยี่ยม", color: "emerald", emoji: "🌟" },
-                    { range: "60-79", label: "ดี", color: "amber", emoji: "👍" },
-                    { range: "0-59", label: "ต้องปรับปรุง", color: "red", emoji: "⚠️" },
+                    {
+                      range: "80-100",
+                      label: "ดีเยี่ยม",
+                      color: "emerald",
+                      emoji: "🌟",
+                    },
+                    {
+                      range: "60-79",
+                      label: "ดี",
+                      color: "amber",
+                      emoji: "👍",
+                    },
+                    {
+                      range: "0-59",
+                      label: "ต้องปรับปรุง",
+                      color: "red",
+                      emoji: "⚠️",
+                    },
                   ].map((item) => (
                     <div key={item.range} className="flex items-center gap-3">
                       <span className="text-2xl">{item.emoji}</span>
                       <div>
-                        <span className={`font-medium text-${item.color}-700`}>{item.range}:</span>
+                        <span className={`font-medium text-${item.color}-700`}>
+                          {item.range}:
+                        </span>
                         <span className="text-gray-600 ml-1">{item.label}</span>
                       </div>
                     </div>
@@ -710,8 +835,12 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     <Users className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">ข้อมูลนักเรียน</h2>
-                    <p className="text-sm text-gray-500">ดูข้อมูลการเข้าร่วมกิจกรรมของนักเรียน</p>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      ข้อมูลนักเรียน
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      ดูข้อมูลการเข้าร่วมกิจกรรมของนักเรียน
+                    </p>
                   </div>
                 </div>
                 <span className="text-sm text-gray-500">
@@ -739,7 +868,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     className="pl-10 pr-8 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 appearance-none bg-white cursor-pointer"
                   >
                     {classes.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -755,22 +886,47 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200 bg-gray-50/50">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">รหัสนักเรียน</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">ชื่อ-สกุล</th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">ชั้นเรียน</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">เข้าร่วม</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">ขาด</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">สาย</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">ลา</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">คะแนนความประพฤติ</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                          รหัสนักเรียน
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                          ชื่อ-สกุล
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                          ชั้นเรียน
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                          เข้าร่วม
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                          ขาด
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                          สาย
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                          ลา
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">
+                          คะแนนความประพฤติ
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredStudents.map((student) => (
-                        <tr key={student.studentId} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 px-4 text-rose-600 font-medium">{student.studentId}</td>
-                          <td className="py-3 px-4 text-gray-900">{student.name}</td>
-                          <td className="py-3 px-4 text-gray-600">{student.classes}</td>
+                        <tr
+                          key={student.studentId}
+                          className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-rose-600 font-medium">
+                            {student.studentId}
+                          </td>
+                          <td className="py-3 px-4 text-gray-900">
+                            {student.name}
+                          </td>
+                          <td className="py-3 px-4 text-gray-600">
+                            {student.classes}
+                          </td>
                           <td className="py-3 px-4 text-center">
                             <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">
                               {student.joinDays}
@@ -792,12 +948,15 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-lg text-sm font-bold ${student.behaviorScore >= 80
-                              ? "bg-emerald-100 text-emerald-700"
-                              : student.behaviorScore >= 60
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-red-100 text-red-700"
-                              }`}>
+                            <span
+                              className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-lg text-sm font-bold ${
+                                student.behaviorScore >= 80
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : student.behaviorScore >= 60
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                            >
                               {student.behaviorScore}
                             </span>
                           </td>

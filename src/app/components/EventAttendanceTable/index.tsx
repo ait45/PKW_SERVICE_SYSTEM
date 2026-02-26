@@ -32,6 +32,29 @@ interface Student {
   classes: string;
 }
 
+const statusOptions = [
+  { value: "เข้าร่วมกิจกรรม", label: "เข้าร่วมกิจกรรม", color: "bg-emerald-500", text: "text-white" },
+  { value: "ลา", label: "ลา", color: "bg-yellow-500", text: "text-white" },
+  { value: "สาย", label: "สาย", color: "bg-orange-500", text: "text-white" },
+  { value: "ขาด", label: "ขาด", color: "bg-red-500", text: "text-white" },
+  { value: "ยังไม่เช็คชื่อ", label: "ยังไม่เช็คชื่อ", color: "bg-gray-200", text: "text-gray-700" },
+];
+
+const getStatusColor = (status: string) => {
+  const found = statusOptions.find((s) => s.value === status);
+  return found ? `${found.color} ${found.text}` : "bg-gray-200 text-gray-700";
+};
+
+const getStatusDot = (status: string) => {
+  switch (status) {
+    case "เข้าร่วมกิจกรรม": return "bg-emerald-500";
+    case "ลา": return "bg-yellow-500";
+    case "สาย": return "bg-orange-500";
+    case "ขาด": return "bg-red-500";
+    default: return "bg-gray-300";
+  }
+};
+
 function EventAttendanceTable({ session }: { session: any }) {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -40,6 +63,7 @@ function EventAttendanceTable({ session }: { session: any }) {
   const [dataUpdate, setDataUpdate] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectClasses, setSelectClasses] = useState("ทั้งหมด");
+  const [refresh, setRefresh] = useState(false);
 
   const classesList = [
     { label: "มัธยมศึกษาปีที่ 1", val: 0 },
@@ -371,19 +395,25 @@ function EventAttendanceTable({ session }: { session: any }) {
           <button
             onClick={() => {
               if (selectedEventId) {
-                Swal.fire({ didOpen: () => Swal.showLoading() });
                 setTimeout(async () => {
-                  await fetchAttendance(selectedEventId);
-                  setDataUpdate([]);
-                  Swal.close();
+                  try {
+                    await fetchAttendance(selectedEventId);
+                    setDataUpdate([]);
+                    setRefresh(false);
+                  } catch (error) {
+                    Swal.fire({ text:"เกิดข้อผิดพลาด", icon:"error"});
+                    setRefresh(false);
+                  } finally {
+                    setRefresh(false);
+                  }
+                  
                 }, 300);
               }
             }}
             disabled={!selectedEventId}
-            className="flex items-center px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors disabled:opacity-50"
+            className="flex items-center px-3 py-2 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-600 cursor-pointer disabled:cursor-not-allowedl transition-colors disabled:opacity-50"
           >
-            <RefreshCcw size={18} className="mr-2" />
-            รีเฟรช
+            <RefreshCcw size={20} className={`${refresh ? "animate-ping" : ""}`}/>
           </button>
         </div>
 
@@ -430,7 +460,7 @@ function EventAttendanceTable({ session }: { session: any }) {
                 currentData.map((row) => (
                   <tr
                     key={row.studentId}
-                    className="bg-slate-50 text-center hover:bg-slate-100 font-mono"
+                    className="bg-slate-50 text-center hover:bg-slate-100 font-mono border-b border-slate-300"
                   >
                     <td className=" text-[#009EA3] px-4 py-3 text-nowrap">
                       {row.studentId}
@@ -442,37 +472,22 @@ function EventAttendanceTable({ session }: { session: any }) {
                       <div className="p-2 rounded-md bg-blue-100 text-blue-500">{row.classes}</div>
                     </td>
                     <td className=" px-4 py-3">
-                      <select
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${getStatusDot(row.status)} shrink-0`}/>
+                        <select
                         value={row.status}
                         onChange={(e) =>
                           handleStatusChange(row.studentId, e.target.value)
                         }
-                        className={`px-3 py-1 rounded-lg border-0 outline-none cursor-pointer ${getStatusColor(
+                        className={`px-3 py-1 rounded-lg outline-none cursor-pointer ${getStatusColor(
                           row.status
-                        )}`}
+                        )} border-2 border-transparent hover:border-amber-300 transition-colors shadow-sm`}
                       >
-                        <option
-                          value="เข้าร่วมกิจกรรม"
-                          className="bg-white text-black"
-                        >
-                          เข้าร่วมกิจกรรม
-                        </option>
-                        <option value="ลา" className="bg-white text-black">
-                          ลา
-                        </option>
-                        <option value="สาย" className="bg-white text-black">
-                          สาย
-                        </option>
-                        <option value="ขาด" className="bg-white text-black">
-                          ขาด
-                        </option>
-                        <option
-                          value="ยังไม่เช็คชื่อ"
-                          className="bg-white text-black"
-                        >
-                          ยังไม่เช็คชื่อ
-                        </option>
+                        {statusOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value} className={`${opt.color} ${opt.text} p-4 `}>{opt.label}</option>
+                        ))}
                       </select>
+                      </div>
                     </td>
                   </tr>
                 ))

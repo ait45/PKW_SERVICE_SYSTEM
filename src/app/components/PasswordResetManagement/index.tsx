@@ -140,7 +140,7 @@ export default function PasswordResetManagement() {
             <div className="text-center py-12 text-slate-400"><Key className="w-12 h-12 mx-auto mb-2 opacity-30" /><p>ไม่มีคำขอ</p></div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">รหัสนักเรียน</th>
                   <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">ชื่อ</th>
@@ -198,7 +198,7 @@ export default function PasswordResetManagement() {
                 <textarea value={editData.note} onChange={(e) => setEditData({ ...editData, note: e.target.value })} rows={2} className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="เช่น รีเซ็ตแล้ว รหัสใหม่คือ xxxxxxxx" />
               </div>
 
-              <button onClick={handleUpdate} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button onClick={handleUpdate} className="flex items-center justify-center w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 {statusPutData ? (
                   <>
                     <svg

@@ -27,8 +27,18 @@ interface Holiday {
 }
 
 const typeOptions = [
-  { value: "regular", label: "วันหยุด (ไม่เช็คชื่อ)", color: "bg-amber-100 text-amber-700", icon: CalendarOff },
-  { value: "auto_present", label: "เช็คชื่อมาอัตโนมัติ", color: "bg-emerald-100 text-emerald-700", icon: PartyPopper },
+  {
+    value: "regular",
+    label: "วันหยุด (ไม่เช็คชื่อ)",
+    color: "bg-amber-100 text-amber-700",
+    icon: CalendarOff,
+  },
+  {
+    value: "auto_present",
+    label: "เช็คชื่อมาอัตโนมัติ",
+    color: "bg-emerald-100 text-emerald-700",
+    icon: PartyPopper,
+  },
 ];
 
 function HolidayManagement() {
@@ -36,18 +46,35 @@ function HolidayManagement() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "regular" | "auto_present">("all");
+  const [filterType, setFilterType] = useState<
+    "all" | "regular" | "auto_present"
+  >("all");
 
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
-  const [form, setForm] = useState<Holiday>({ date: "", name: "", type: "regular", status: "" });
+  const [form, setForm] = useState<Holiday>({
+    date: "",
+    name: "",
+    type: "regular",
+    status: "",
+  });
   const [saving, setSaving] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
+  function getColorStatus(type: string) {
+    switch (type) {
+      case "อนุมัติแล้ว":
+        return "bg-emerald-100 text-emerald-500";
+      case "กำลังดำเนินการ":
+        return "bg-amber-100 text-amber-500";
+      case "ปฏิเสธ":
+        return "bg-red-100 text-red-500";
+    }
+  }
   const fetchHolidays = async () => {
     setLoading(true);
     try {
@@ -77,7 +104,7 @@ function HolidayManagement() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
-        (h) => h.name.toLowerCase().includes(term) || h.date.includes(term)
+        (h) => h.name.toLowerCase().includes(term) || h.date.includes(term),
       );
     }
     return result;
@@ -123,10 +150,17 @@ function HolidayManagement() {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/holidays/manage?date=${date}`, { method: "DELETE" });
+      const res = await fetch(`/api/holidays/manage?date=${date}`, {
+        method: "DELETE",
+      });
       const data = await res.json();
       if (data.success) {
-        Swal.fire({ icon: "success", title: "ลบสำเร็จ", timer: 1200, showConfirmButton: false });
+        Swal.fire({
+          icon: "success",
+          title: "ลบสำเร็จ",
+          timer: 1200,
+          showConfirmButton: false,
+        });
         fetchHolidays();
       } else {
         Swal.fire("เกิดข้อผิดพลาด", data.message, "error");
@@ -142,9 +176,7 @@ function HolidayManagement() {
 
     try {
       const isEdit = editingDate !== null;
-      const body = isEdit
-        ? { originalDate: editingDate, ...form }
-        : form;
+      const body = isEdit ? { originalDate: editingDate, ...form } : form;
 
       const res = await fetch("/api/holidays/manage", {
         method: isEdit ? "PUT" : "POST",
@@ -154,7 +186,12 @@ function HolidayManagement() {
       const data = await res.json();
 
       if (data.success) {
-        Swal.fire({ icon: "success", title: data.message, timer: 1200, showConfirmButton: false });
+        Swal.fire({
+          icon: "success",
+          title: data.message,
+          timer: 1200,
+          showConfirmButton: false,
+        });
         setShowModal(false);
         fetchHolidays();
       } else {
@@ -182,7 +219,8 @@ function HolidayManagement() {
 
   // Ellipsis pagination
   const getPageNumbers = () => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 7)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | string)[] = [1];
     if (currentPage > 3) pages.push("...");
     const start = Math.max(2, currentPage - 1);
@@ -208,7 +246,10 @@ function HolidayManagement() {
         </div>
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl p-3 animate-pulse border border-gray-100">
+            <div
+              key={i}
+              className="bg-white rounded-xl p-3 animate-pulse border border-gray-100"
+            >
               <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
               <div className="h-7 w-10 bg-gray-200 rounded" />
             </div>
@@ -216,7 +257,10 @@ function HolidayManagement() {
         </div>
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="px-4 py-3 border-b border-gray-50 flex gap-4 animate-pulse">
+            <div
+              key={i}
+              className="px-4 py-3 border-b border-gray-50 flex gap-4 animate-pulse"
+            >
               <div className="h-4 w-[20%] bg-gray-200 rounded" />
               <div className="h-4 w-[35%] bg-gray-200 rounded" />
               <div className="h-4 w-[20%] bg-gray-200 rounded" />
@@ -239,7 +283,9 @@ function HolidayManagement() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold">จัดการวันหยุด</h1>
-              <p className="text-white/80 text-sm">เพิ่ม แก้ไข หรือลบวันหยุดและวันกิจกรรม</p>
+              <p className="text-white/80 text-sm">
+                เพิ่ม แก้ไข หรือลบวันหยุดและวันกิจกรรม
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -264,11 +310,32 @@ function HolidayManagement() {
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
         {[
-          { label: "ทั้งหมด", value: holidays.length, color: "text-violet-600", bg: "bg-violet-50", icon: CalendarDays },
-          { label: "วันหยุด", value: regularCount, color: "text-amber-600", bg: "bg-amber-50", icon: CalendarOff },
-          { label: "เช็คอัตโนมัติ", value: autoCount, color: "text-emerald-600", bg: "bg-emerald-50", icon: PartyPopper },
+          {
+            label: "ทั้งหมด",
+            value: holidays.length,
+            color: "text-violet-600",
+            bg: "bg-violet-50",
+            icon: CalendarDays,
+          },
+          {
+            label: "วันหยุด",
+            value: regularCount,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+            icon: CalendarOff,
+          },
+          {
+            label: "เช็คอัตโนมัติ",
+            value: autoCount,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+            icon: PartyPopper,
+          },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+          <div
+            key={stat.label}
+            className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm"
+          >
             <div className="flex items-center gap-2 mb-1">
               <stat.icon size={16} className={stat.color} />
               <span className="text-xs text-gray-500">{stat.label}</span>
@@ -315,35 +382,58 @@ function HolidayManagement() {
           <table className="table-auto w-full">
             <thead>
               <tr className="bg-slate-50 border-b border-gray-100">
-                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">วันที่</th>
-                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">ชื่อวันหยุด</th>
-                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">ประเภท</th>
-                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">สถานะเช็ค</th>
-                <th className="px-4 py-3.5 text-center text-sm font-semibold text-slate-600 w-[100px] text-nowrap">จัดการ</th>
+                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">
+                  วันที่
+                </th>
+                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">
+                  ชื่อวันหยุด
+                </th>
+                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">
+                  ประเภท
+                </th>
+                <th className="px-4 py-3.5 text-left text-sm font-semibold text-slate-600 text-nowrap">
+                  สถานะเช็ค
+                </th>
+                <th className="px-4 py-3.5 text-center text-sm font-semibold text-slate-600 w-[100px] text-nowrap">
+                  จัดการ
+                </th>
               </tr>
             </thead>
             <tbody>
               {paginated.length > 0 ? (
                 paginated.map((h) => {
-                  const typeInfo = typeOptions.find((t) => t.value === h.type) || typeOptions[0];
+                  const typeInfo =
+                    typeOptions.find((t) => t.value === h.type) ||
+                    typeOptions[0];
                   return (
-                    <tr key={h.date} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <tr
+                      key={h.date}
+                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                    >
                       <td className="px-4 py-3 text-nowrap">
                         <div>
-                          <span className="font-mono text-violet-600 font-medium">{h.date}</span>
-                          <p className="text-xs text-gray-400 mt-0.5">{formatDate(h.date)}</p>
+                          <span className="font-mono text-violet-600 font-medium">
+                            {h.date}
+                          </span>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {formatDate(h.date)}
+                          </p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-800">{h.name}</td>
                       <td className="px-4 py-3 text-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${typeInfo.color}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${typeInfo.color}`}
+                        >
                           <typeInfo.icon size={12} />
                           {typeInfo.label}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 text-nowrap">
                         {h.type === "auto_present" ? (
-                          <span className="text-emerald-600 font-medium">{h.status || "เข้าร่วมกิจกรรม"}</span>
+                          <span className="text-emerald-600 font-medium">
+                            {h.status || "เข้าร่วมกิจกรรม"}
+                          </span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
@@ -371,7 +461,10 @@ function HolidayManagement() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
                     <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p>ไม่พบข้อมูลวันหยุด</p>
                   </td>
@@ -385,7 +478,9 @@ function HolidayManagement() {
         {totalPages > 1 && (
           <div className="border-t border-gray-100 px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-xs text-gray-500">
-              แสดง {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)} จาก {filtered.length} รายการ
+              แสดง {(currentPage - 1) * itemsPerPage + 1} -{" "}
+              {Math.min(currentPage * itemsPerPage, filtered.length)} จาก{" "}
+              {filtered.length} รายการ
             </p>
             <div className="flex items-center gap-1">
               <button
@@ -397,7 +492,12 @@ function HolidayManagement() {
               </button>
               {getPageNumbers().map((page, idx) =>
                 typeof page === "string" ? (
-                  <span key={`e-${idx}`} className="w-8 text-center text-gray-400 text-sm">…</span>
+                  <span
+                    key={`e-${idx}`}
+                    className="w-8 text-center text-gray-400 text-sm"
+                  >
+                    …
+                  </span>
                 ) : (
                   <button
                     key={page}
@@ -410,10 +510,12 @@ function HolidayManagement() {
                   >
                     {page}
                   </button>
-                )
+                ),
               )}
               <button
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 className="p-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
@@ -442,7 +544,9 @@ function HolidayManagement() {
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  วันที่
+                </label>
                 <input
                   type="date"
                   required
@@ -453,7 +557,9 @@ function HolidayManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อวันหยุด</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ชื่อวันหยุด
+                </label>
                 <input
                   type="text"
                   required
@@ -465,21 +571,34 @@ function HolidayManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ประเภท</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ประเภท
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {typeOptions.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setForm({ ...form, type: opt.value as any })}
+                      onClick={() =>
+                        setForm({ ...form, type: opt.value as any })
+                      }
                       className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5 text-center ${
                         form.type === opt.value
                           ? "border-violet-500 bg-violet-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <opt.icon size={20} className={form.type === opt.value ? "text-violet-600" : "text-gray-400"} />
-                      <span className={`text-xs font-medium ${form.type === opt.value ? "text-violet-700" : "text-gray-500"}`}>
+                      <opt.icon
+                        size={20}
+                        className={
+                          form.type === opt.value
+                            ? "text-violet-600"
+                            : "text-gray-400"
+                        }
+                      />
+                      <span
+                        className={`text-xs font-medium ${form.type === opt.value ? "text-violet-700" : "text-gray-500"}`}
+                      >
                         {opt.label}
                       </span>
                     </button>
@@ -489,11 +608,15 @@ function HolidayManagement() {
 
               {form.type === "auto_present" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">สถานะที่จะเช็ค</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    สถานะที่จะเช็ค
+                  </label>
                   <select
                     className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, status: e.target.value })
+                    }
                   >
                     <option value="">เลือกสถานะ</option>
                     <option value="เข้าร่วมกิจกรรม">เข้าร่วมกิจกรรม</option>
@@ -515,7 +638,11 @@ function HolidayManagement() {
                   disabled={saving}
                   className="px-6 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-medium shadow-lg shadow-violet-200 transition-colors flex items-center gap-2"
                 >
-                  {saving ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18} />}
+                  {saving ? (
+                    <LoaderCircle size={18} className="animate-spin" />
+                  ) : (
+                    <Save size={18} />
+                  )}
                   {editingDate ? "บันทึก" : "เพิ่ม"}
                 </button>
               </div>

@@ -28,7 +28,7 @@ interface Student {
   classes: string;
   phone: string;
   parentPhone: string;
-  Number: string;
+  number: string;
   plantData: string;
   isAdmin: number;
 }
@@ -54,7 +54,7 @@ function StudentManagement({
     classes: "",
     phone: "",
     parentPhone: "",
-    Number: "",
+    number: "",
     plantData: "",
     isAdmin: 0,
   });
@@ -66,7 +66,9 @@ function StudentManagement({
   const [statusFetch, setStatusFetch] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   // Sorting states
-  const [sortBy, setSortBy] = useState<"studentId" | "name" | "classes">("studentId");
+  const [sortBy, setSortBy] = useState<"studentId" | "name" | "classes">(
+    "studentId",
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const openModel = () => {
     setIsOpenModel(true);
@@ -83,7 +85,7 @@ function StudentManagement({
         classes: "",
         phone: "",
         parentPhone: "",
-        Number: "",
+        number: "",
         plantData: "",
         isAdmin: 0,
       });
@@ -133,10 +135,11 @@ function StudentManagement({
     document.body.classList.add("loading");
     try {
       Swal.fire({
-        titleText: `${isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
-          }`,
+        titleText: `${
+          isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
+        }`,
         icon: "question",
-        width: "60%",
+        width: "80%",
         showConfirmButton: true,
         showCancelButton: true,
         cancelButtonText: "ยกเลิก",
@@ -146,7 +149,7 @@ function StudentManagement({
       }).then(async (result) => {
         if (result.isConfirmed) {
           Swal.fire({
-            width: "60%",
+            width: "80%",
             didOpen: () => {
               Swal.showLoading();
             },
@@ -163,7 +166,7 @@ function StudentManagement({
                 text: "แก้ไขข้อมูลสำเร็จ!",
                 icon: "success",
                 timer: 2000,
-                width: "60%",
+                width: "80%",
               });
               closeModel();
               setNewStudent({
@@ -172,7 +175,7 @@ function StudentManagement({
                 classes: "",
                 phone: "",
                 parentPhone: "",
-                Number: "",
+                number: "",
                 plantData: "",
                 isAdmin: 0,
               });
@@ -183,7 +186,7 @@ function StudentManagement({
                 text: "กรุณาลองอีกครั้ง",
                 icon: "warning",
                 timer: 3000,
-                width: "60%",
+                width: "80%",
               });
             }
           } else {
@@ -200,7 +203,7 @@ function StudentManagement({
                   text: "เพิ่มข้อมูลสำเร็จ!",
                   icon: "success",
                   timer: 2000,
-                  width: "60%",
+                  width: "80%",
                 });
                 setNewStudent({
                   studentId: "",
@@ -208,7 +211,7 @@ function StudentManagement({
                   classes: "",
                   phone: "",
                   parentPhone: "",
-                  Number: "",
+                  number: "",
                   isAdmin: 0,
                 });
                 fetchStudents();
@@ -222,7 +225,7 @@ function StudentManagement({
                   text: "กรุณาลองอีกครั้ง",
                   icon: "warning",
                   timer: 3000,
-                  width: "60%",
+                  width: "80%",
                 });
               }
             } catch (error) {
@@ -230,7 +233,7 @@ function StudentManagement({
                 title: "เกิดข้อผิดพลาด",
                 text: "กรุณาลองใหม่อีกครั้ง",
                 icon: "error",
-                width: "60%",
+                width: "80%",
               });
               console.log("Error: ", error);
             }
@@ -277,7 +280,7 @@ function StudentManagement({
               timer: 3000,
               icon: "success",
               showConfirmButton: true,
-              width: "60%",
+              width: "80%",
             });
           }
           Swal.fire({
@@ -285,7 +288,7 @@ function StudentManagement({
             text: "กรุณาลองใหม่อีกครั้ง",
             icon: "error",
             timer: 3000,
-            width: "60%",
+            width: "80%",
           });
         } catch (error) {
           console.log(error);
@@ -308,7 +311,7 @@ function StudentManagement({
       classes: dataBeforeUpdate[0].classes,
       phone: dataBeforeUpdate[0].phone,
       parentPhone: dataBeforeUpdate[0].parentPhone,
-      Number: dataBeforeUpdate[0].Number,
+      number: dataBeforeUpdate[0].number,
       plantData: dataBeforeUpdate[0].plantData,
       isAdmin: dataBeforeUpdate[0].isAdmin,
     });
@@ -326,10 +329,13 @@ function StudentManagement({
 
   // Get sort icon
   const getSortIcon = (column: string) => {
-    if (sortBy !== column) return <ArrowUpDown size={14} className="ml-1 text-slate-400" />;
-    return sortOrder === "asc"
-      ? <ArrowUp size={14} className="ml-1 text-blue-600" />
-      : <ArrowDown size={14} className="ml-1 text-blue-600" />;
+    if (sortBy !== column)
+      return <ArrowUpDown size={14} className="ml-1 text-slate-400" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="ml-1 text-blue-600" />
+    ) : (
+      <ArrowDown size={14} className="ml-1 text-blue-600" />
+    );
   };
 
   // ประกาศตัวเก็บข้อมูลของ รายชื่อนักเรียนสำหรับการแก้ไขข้อมูล
@@ -389,9 +395,10 @@ function StudentManagement({
 
   const filteredStudentSelected = useMemo(() => {
     // Filter by class
-    const filtered = selectClasses === "ทั้งหมด"
-      ? tableStudent
-      : tableStudent.filter((s: any) => s.classes === selectClasses);
+    const filtered =
+      selectClasses === "ทั้งหมด"
+        ? tableStudent
+        : tableStudent.filter((s: any) => s.classes === selectClasses);
 
     // Apply sorting
     return [...filtered].sort((a, b) => {
@@ -471,8 +478,9 @@ function StudentManagement({
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
                     <div
-                      className={`${isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
-                        } mr-2 text-white p-2 rounded-md`}
+                      className={`${
+                        isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
+                      } mr-2 text-white p-2 rounded-md`}
                     >
                       {isFormUpdate ? <UserPen /> : <UserPlus />}
                     </div>
@@ -514,11 +522,13 @@ function StudentManagement({
                     value={newStudent.studentId}
                     onChange={handleInputChange}
                     disabled={isFormUpdate}
-                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${errors.studentId ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500 ${isFormUpdate
+                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${
+                      errors.studentId ? "border-red-500" : "border-slate-300"
+                    } focus:ring-blue-500 ${
+                      isFormUpdate
                         ? "text-slate-400 cursor-not-allowed"
                         : "text-slate-900"
-                      }`}
+                    }`}
                     placeholder="xxxx"
                   />
                   {errors.studentId && (
@@ -539,8 +549,9 @@ function StudentManagement({
                     width="80%"
                     value={newStudent.name}
                     onChange={handleInputChange}
-                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${errors.name ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500`}
+                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
+                      errors.name ? "border-red-500" : "border-slate-300"
+                    } focus:ring-blue-500`}
                     placeholder="xxx xxxxxx xxxxxx"
                   />
                   {errors.name && (
@@ -558,8 +569,9 @@ function StudentManagement({
                       ชั้นเรียน
                     </label>
                     <select
-                      className={`px-4 py-2 h-10 md:h-12 w-fit border rounded-lg focus:outline-none focus:ring-2 ${errors.classes ? "border-red-500" : "border-slate-300"
-                        } focus:ring-blue-500 cursor-pointer w-[80%] text-sm  sm:text-base`}
+                      className={`px-4 py-2 h-10 md:h-12 w-fit border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.classes ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500 cursor-pointer w-[80%] text-sm  sm:text-base`}
                       id="classes"
                       name="classes"
                       value={newStudent.classes}
@@ -590,15 +602,16 @@ function StudentManagement({
                       id="Number"
                       name="Number"
                       min="0"
-                      value={newStudent.Number || ""}
+                      value={newStudent.number || ""}
                       onChange={handleInputChange}
-                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${errors.Number ? "border-red-500" : "border-slate-300"
-                        } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${
+                        errors.number ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500`}
                       placeholder="xx"
                     />
-                    {errors.Number && (
+                    {errors.number && (
                       <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
-                        {errors.Number}
+                        {errors.number}
                       </p>
                     )}
                   </div>
@@ -625,8 +638,9 @@ function StudentManagement({
                         })
                       }
                       placeholder="xxx-xxx-xxxx"
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone ? "border-red-500" : "border-slate-300"
-                        } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.phone ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500`}
                     />
                     {errors.phone && (
                       <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
@@ -653,10 +667,11 @@ function StudentManagement({
                           parentPhone: formatPhone(e.target.value),
                         })
                       }
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${errors.parentPhone
-                        ? "border-red-500"
-                        : "border-slate-300"
-                        } focus:ring-blue-500`}
+                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
+                        errors.parentPhone
+                          ? "border-red-500"
+                          : "border-slate-300"
+                      } focus:ring-blue-500`}
                     />
                     {errors.parentPhone && (
                       <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
@@ -735,7 +750,10 @@ function StudentManagement({
               ข้อมูลแต่ละชั้นเรียน
             </h1>
           </div>
-          <div className="p-2 rounded-xl bg-slate-100 text-slate-600 cursor-pointer" onClick={fetchStudents}>
+          <div
+            className="p-2 rounded-xl bg-slate-100 text-slate-600 cursor-pointer"
+            onClick={fetchStudents}
+          >
             <RefreshCw className={`${statusFetch ? "animate-spin" : ""}`} />
           </div>
         </div>
@@ -778,13 +796,19 @@ function StudentManagement({
           <table className="table w-full border text-sm sm:text-md">
             <thead>
               <tr className="bg-blue-100 text-nowrap">
-                <th className="border border-gray-300 px-4 py-3 w-[10%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("studentId")}>
+                <th
+                  className="border border-gray-300 px-4 py-3 w-[10%] cursor-pointer hover:bg-blue-200 transition-colors select-none"
+                  onClick={() => handleSort("studentId")}
+                >
                   <div className="flex items-center justify-center">
                     รหัสนักเรียน
                     {getSortIcon("studentId")}
                   </div>
                 </th>
-                <th className="border border-gray-300 px-4 py-3 w-[30%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("name")}>
+                <th
+                  className="border border-gray-300 px-4 py-3 w-[30%] cursor-pointer hover:bg-blue-200 transition-colors select-none"
+                  onClick={() => handleSort("name")}
+                >
                   <div className="flex justify-center items-center">
                     ชื่อ-นามสกุล
                     {getSortIcon("name")}
@@ -797,7 +821,10 @@ function StudentManagement({
                 <th className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none">
                   เบอร์โทรผู้ปกครอง
                 </th>
-                <th className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none" onClick={() => handleSort("classes")}>
+                <th
+                  className="border border-gray-300 px-4 py-3 w-[15%] cursor-pointer hover:bg-blue-200 transition-colors select-none"
+                  onClick={() => handleSort("classes")}
+                >
                   <div className="flex justify-center items-center">
                     ชั้นเรียน
                     {getSortIcon("classes")}
@@ -888,8 +915,9 @@ function StudentManagement({
               <button
                 key={Page}
                 onClick={() => setNumberPager(Page)}
-                className={`mr-3 ${Page === NumberPager && "bg-blue-400 text-white "
-                  } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
+                className={`mr-3 ${
+                  Page === NumberPager && "bg-blue-400 text-white "
+                } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
               >
                 {Page}
               </button>

@@ -3,27 +3,23 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import logo from "../../assets/logo.png";
 import Link from "next/link";
-import { Clock, Calendar, LogIn, LogOut, CircleUserRound } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { Clock, Calendar, LogIn } from "lucide-react";
 import Timer from "../date-time/timer";
 import Day from "../date-time/day";
-import Swal from 'sweetalert2';
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
 import NotificationBell from "../NotificationBell";
-
+import UserInfo from "../UserInfo";
 
 function NavBar({ session }: { session?: any }) {
   const [currentDate] = useState(Day());
   const [component, setComponent] = useState("");
-  const router = useRouter();
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
     const checkMobile = () => {
       const isMobile = window.innerWidth < 768;
       setIsMobile(isMobile);
-    }
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -33,7 +29,7 @@ function NavBar({ session }: { session?: any }) {
     <header className="flex items-center bg-white w-auto max-h-50 border-b-2 border-[#009EA3]">
       <Image
         src={logo}
-        width={40} 
+        width={40}
         height={40}
         alt="logo"
         className="m-1 sm:m-2"
@@ -97,29 +93,8 @@ function NavBar({ session }: { session?: any }) {
           <div className="flex items-center">
             {/* Notification Bell */}
             <NotificationBell session={session} />
-            
-            <div className="flex items-center text-sm p-4" title={isMobile ? `${session?.user?.name}` : "ชื่อผู้ใช้"}>
-              <CircleUserRound className="text-blue-500" />
-              <p className="hidden sm:inline">{session?.user?.name}</p>
-            </div>
-            <a
-              onClick={async () => {
-                await signOut();
-                setTimeout(() => {
-                  Swal.fire({
-                    title: "ออกจากระบบเสร็จสิ้น",
-                    icon: "success",
-                    timer: 5000,
-                  });
-                }, 1000);
-                router.push("/login" as Route);
-              }}
-              className="flex items-center text-sm text-red-500 hover:text-red-700 hover:transition-colors cursor-pointer mr-2"
-              title="ออกจากระบบ"
-            >
-              <LogOut width={15} height={15} className="mr-1" />
-              <p className="hidden sm:inline">ออกจากระบบ</p>
-            </a>
+            {/* UserInfo */}
+            <UserInfo session={session} isMobile={isMobile} />
           </div>
         )}
       </div>
@@ -128,4 +103,3 @@ function NavBar({ session }: { session?: any }) {
 }
 
 export default NavBar;
-

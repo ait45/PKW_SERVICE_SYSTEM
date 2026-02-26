@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       { status: 401 },
     );
   }
-  if (!session.user.isAdmin) {
+  if (!session?.user?.isAdmin === false) {
     return NextResponse.json(
       {
         error: "Forbidden",
@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
 
       // อัพเดตสถานะเป็น approved
       request.status = "approved";
-      request.reviewedBy = session.user.username;
-      request.reviewedByName = session.user.name;
+      request.reviewedBy = session?.user?.username ?? undefined;
+      request.reviewedByName = session?.user?.name ?? undefined;
       request.reviewedAt = new Date();
       await request.save();
 
@@ -111,8 +111,8 @@ export async function POST(req: NextRequest) {
       }
 
       request.status = "rejected";
-      request.reviewedBy = session.user.username;
-      request.reviewedByName = session.user.name;
+      request.reviewedBy = session?.user?.username ?? undefined;
+      request.reviewedByName = session?.user?.name ?? undefined;
       request.reviewedAt = new Date();
       request.rejectReason = rejectReason;
       await request.save();

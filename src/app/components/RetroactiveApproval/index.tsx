@@ -84,8 +84,22 @@ function RetroactiveApproval() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+  const [filter, setFilter] = useState<
+    "all" | "pending" | "approved" | "rejected"
+  >("pending");
 
+  function getColorStatus(type: string) {
+    switch (type) {
+      case "รอดำเนินการ":
+        return "bg-amber-100 text-amber-500";
+      case "อนุมัติแล้ว":
+        return "bg-emerald-100 text-emerald-500";
+      case "ปฏิเสธ":
+        return "bg-red-100 text-red-500";
+      default:
+        return "bg-blue-100 text-blue-500";
+    }
+  }
   const fetchRequests = async () => {
     setLoading(true);
     try {
@@ -108,7 +122,7 @@ function RetroactiveApproval() {
   }, []);
 
   const filteredRequests = requests.filter((r) =>
-    filter === "all" ? true : r.status === filter
+    filter === "all" ? true : r.status === filter,
   );
 
   const pendingCount = requests.filter((r) => r.status === "pending").length;
@@ -190,10 +204,30 @@ function RetroactiveApproval() {
   };
 
   const filterTabs = [
-    { key: "pending" as const, label: "รอดำเนินการ", count: pendingCount, color: "bg-amber-500" },
-    { key: "approved" as const, label: "อนุมัติแล้ว", count: approvedCount, color: "bg-emerald-500" },
-    { key: "rejected" as const, label: "ปฏิเสธ", count: rejectedCount, color: "bg-red-500" },
-    { key: "all" as const, label: "ทั้งหมด", count: requests.length, color: "bg-gray-500" },
+    {
+      key: "pending" as const,
+      label: "รอดำเนินการ",
+      count: pendingCount,
+      color: "bg-amber-500",
+    },
+    {
+      key: "approved" as const,
+      label: "อนุมัติแล้ว",
+      count: approvedCount,
+      color: "bg-emerald-500",
+    },
+    {
+      key: "rejected" as const,
+      label: "ปฏิเสธ",
+      count: rejectedCount,
+      color: "bg-red-500",
+    },
+    {
+      key: "all" as const,
+      label: "ทั้งหมด",
+      count: requests.length,
+      color: "bg-gray-500",
+    },
   ];
 
   if (initialLoading) return <SkeletonRetroactiveApproval />;
@@ -208,8 +242,12 @@ function RetroactiveApproval() {
               <ShieldCheck size={28} />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">อนุมัติคำขอเช็คชื่อย้อนหลัง</h1>
-              <p className="text-white/80 text-sm">ตรวจสอบและอนุมัติ/ปฏิเสธคำขอจากครู</p>
+              <h1 className="text-xl sm:text-2xl font-bold">
+                อนุมัติคำขอเช็คชื่อย้อนหลัง
+              </h1>
+              <p className="text-white/80 text-sm">
+                ตรวจสอบและอนุมัติ/ปฏิเสธคำขอจากครู
+              </p>
             </div>
           </div>
           <button
@@ -230,11 +268,13 @@ function RetroactiveApproval() {
           ].map((item) => (
             <div
               key={item.label}
-              className="bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2"
+              className={`bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 `}
             >
               <item.icon size={16} />
               <span className="text-sm">{item.label}</span>
-              <span className="bg-white/25 rounded-full px-2 py-0.5 text-xs font-bold">{item.count}</span>
+              <span className="bg-white/25 rounded-full px-2 py-0.5 text-xs font-bold">
+                {item.count}
+              </span>
             </div>
           ))}
         </div>
@@ -246,18 +286,12 @@ function RetroactiveApproval() {
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-              filter === tab.key
-                ? "bg-violet-500 text-white shadow-sm"
-                : "text-gray-500 hover:bg-gray-50"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointe ${filter === tab.key ? getColorStatus(tab.label) : ""}`}
           >
             {tab.label}
             <span
               className={`text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center ${
-                filter === tab.key
-                  ? "bg-white/25"
-                  : "bg-gray-100"
+                filter === tab.key ? "bg-white/25" : "bg-gray-100"
               }`}
             >
               {tab.count}
@@ -276,7 +310,12 @@ function RetroactiveApproval() {
         ) : filteredRequests.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center py-16 gap-3">
             <Inbox size={48} className="text-gray-300" />
-            <p className="text-gray-400">ไม่มีคำขอ{filter !== "all" ? ` (${filterTabs.find((t) => t.key === filter)?.label})` : ""}</p>
+            <p className="text-gray-400">
+              ไม่มีคำขอ
+              {filter !== "all"
+                ? ` (${filterTabs.find((t) => t.key === filter)?.label})`
+                : ""}
+            </p>
           </div>
         ) : (
           filteredRequests.map((req) => {
@@ -311,17 +350,22 @@ function RetroactiveApproval() {
                         <p className="font-medium text-gray-800 text-sm sm:text-base">
                           {req.requestedByName}
                         </p>
-                        <span className="text-gray-400 text-xs">({req.requestedBy})</span>
+                        <span className="text-gray-400 text-xs">
+                          ({req.requestedBy})
+                        </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                           <Calendar size={12} />
-                          {new Date(req.targetDate).toLocaleDateString("th-TH", {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {new Date(req.targetDate).toLocaleDateString(
+                            "th-TH",
+                            {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
                         </span>
                         <span className="flex items-center gap-1">
                           <User size={12} />
@@ -384,7 +428,10 @@ function RetroactiveApproval() {
                     {/* Reason & Review Info */}
                     <div className="px-4 pt-4 pb-3 space-y-2">
                       <div className="flex items-start gap-2 bg-white rounded-lg p-3 border border-gray-100">
-                        <FileText size={16} className="text-gray-400 mt-0.5 shrink-0" />
+                        <FileText
+                          size={16}
+                          className="text-gray-400 mt-0.5 shrink-0"
+                        />
                         <div>
                           <p className="text-xs text-gray-400 mb-0.5">เหตุผล</p>
                           <p className="text-sm text-gray-700">{req.reason}</p>
@@ -393,18 +440,29 @@ function RetroactiveApproval() {
 
                       {req.status === "rejected" && req.rejectReason && (
                         <div className="flex items-start gap-2 bg-red-50 rounded-lg p-3 border border-red-100">
-                          <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                          <XCircle
+                            size={16}
+                            className="text-red-400 mt-0.5 shrink-0"
+                          />
                           <div>
-                            <p className="text-xs text-red-400 mb-0.5">เหตุผลปฏิเสธ</p>
-                            <p className="text-sm text-red-600">{req.rejectReason}</p>
+                            <p className="text-xs text-red-400 mb-0.5">
+                              เหตุผลปฏิเสธ
+                            </p>
+                            <p className="text-sm text-red-600">
+                              {req.rejectReason}
+                            </p>
                           </div>
                         </div>
                       )}
 
                       {req.reviewedByName && (
                         <p className="text-xs text-gray-400 px-1">
-                          ดำเนินการโดย: <span className="font-medium text-gray-500">{req.reviewedByName}</span>
-                          {req.reviewedAt && ` · ${new Date(req.reviewedAt).toLocaleString("th-TH")}`}
+                          ดำเนินการโดย:{" "}
+                          <span className="font-medium text-gray-500">
+                            {req.reviewedByName}
+                          </span>
+                          {req.reviewedAt &&
+                            ` · ${new Date(req.reviewedAt).toLocaleString("th-TH")}`}
                         </p>
                       )}
                     </div>
@@ -415,25 +473,44 @@ function RetroactiveApproval() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="bg-linear-to-r from-violet-50 to-purple-50 border-b border-violet-100">
-                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">เลขประจำตัว</th>
-                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">ชื่อ-สกุล</th>
-                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">ชั้นเรียน</th>
-                              <th className="px-3 py-2.5 text-center text-gray-600 font-semibold">สถานะ</th>
-                              <th className="px-3 py-2.5 text-center text-gray-600 font-semibold">ประเภท</th>
+                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">
+                                เลขประจำตัว
+                              </th>
+                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">
+                                ชื่อ-สกุล
+                              </th>
+                              <th className="px-3 py-2.5 text-left text-gray-600 font-semibold">
+                                ชั้นเรียน
+                              </th>
+                              <th className="px-3 py-2.5 text-center text-gray-600 font-semibold">
+                                สถานะ
+                              </th>
+                              <th className="px-3 py-2.5 text-center text-gray-600 font-semibold">
+                                ประเภท
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
                             {req.changes.map((change, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                              <tr
+                                key={idx}
+                                className="hover:bg-gray-50/50 transition-colors"
+                              >
                                 <td className="px-3 py-2.5">
-                                  <span className="font-mono text-[#009EA3] font-medium text-xs">{change.studentId}</span>
+                                  <span className="font-mono text-[#009EA3] font-medium text-xs">
+                                    {change.studentId}
+                                  </span>
                                 </td>
-                                <td className="px-3 py-2.5 text-gray-800">{change.name}</td>
-                                <td className="px-3 py-2.5 text-gray-600 text-nowrap">{change.classes}</td>
+                                <td className="px-3 py-2.5 text-gray-800">
+                                  {change.name}
+                                </td>
+                                <td className="px-3 py-2.5 text-gray-600 text-nowrap">
+                                  {change.classes}
+                                </td>
                                 <td className="px-3 py-2.5 text-center">
                                   <span
                                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(
-                                      change.status
+                                      change.status,
                                     )}`}
                                   >
                                     {change.status}
@@ -447,7 +524,9 @@ function RetroactiveApproval() {
                                         : "bg-amber-50 text-amber-600 border border-amber-200"
                                     }`}
                                   >
-                                    {change.isNew ? "เช็คชื่อใหม่" : "แก้ไขสถานะ"}
+                                    {change.isNew
+                                      ? "เช็คชื่อใหม่"
+                                      : "แก้ไขสถานะ"}
                                   </span>
                                 </td>
                               </tr>
