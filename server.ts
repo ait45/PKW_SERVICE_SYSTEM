@@ -17,7 +17,7 @@ import { getToken } from "next-auth/jwt";
 
 // Environment variables
 const dev: boolean = process.env.NODE_ENV !== "production";
-const hostname: string = "localhost";
+const hostname: string = "[0.0.0.0]";
 const port: number = Number(process.env.PORT) || 3000;
 
 // setting ratelimit api

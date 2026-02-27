@@ -36,11 +36,21 @@ interface AttendanceData {
 }
 
 const statusOptions = [
-  { value: "เข้าร่วมกิจกรรม", label: "เข้าร่วมกิจกรรม", color: "bg-emerald-500", text: "text-white" },
+  {
+    value: "เข้าร่วมกิจกรรม",
+    label: "เข้าร่วมกิจกรรม",
+    color: "bg-emerald-500",
+    text: "text-white",
+  },
   { value: "ลา", label: "ลา", color: "bg-yellow-500", text: "text-white" },
   { value: "สาย", label: "สาย", color: "bg-orange-500", text: "text-white" },
   { value: "ขาด", label: "ขาด", color: "bg-red-500", text: "text-white" },
-  { value: "ยังไม่เช็คชื่อ", label: "ยังไม่เช็คชื่อ", color: "bg-gray-200", text: "text-gray-700" },
+  {
+    value: "ยังไม่เช็คชื่อ",
+    label: "ยังไม่เช็คชื่อ",
+    color: "bg-gray-200",
+    text: "text-gray-700",
+  },
 ];
 
 const getStatusColor = (status: string) => {
@@ -50,11 +60,16 @@ const getStatusColor = (status: string) => {
 
 const getStatusDot = (status: string) => {
   switch (status) {
-    case "เข้าร่วมกิจกรรม": return "bg-emerald-500";
-    case "ลา": return "bg-yellow-500";
-    case "สาย": return "bg-orange-500";
-    case "ขาด": return "bg-red-500";
-    default: return "bg-gray-300";
+    case "เข้าร่วมกิจกรรม":
+      return "bg-emerald-500";
+    case "ลา":
+      return "bg-yellow-500";
+    case "สาย":
+      return "bg-orange-500";
+    case "ขาด":
+      return "bg-red-500";
+    default:
+      return "bg-gray-300";
   }
 };
 
@@ -87,7 +102,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Sorting
-  const [sortBy, setSortBy] = useState<"studentId" | "name" | "classes" | "status">("studentId");
+  const [sortBy, setSortBy] = useState<
+    "studentId" | "name" | "classes" | "status"
+  >("studentId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Pagination
@@ -135,13 +152,15 @@ function RetroactiveAttendance({ session }: { session: any }) {
       filtered = filtered.filter(
         (s) =>
           s.studentId.toLowerCase().includes(q) ||
-          s.name.toLowerCase().includes(q)
+          s.name.toLowerCase().includes(q),
       );
     }
 
     const merged = filtered.map((student) => {
       const att = attendance.find((a) => a.studentId === student.studentId);
-      const update = dataUpdate.find((u: any) => u.studentId === student.studentId);
+      const update = dataUpdate.find(
+        (u: any) => u.studentId === student.studentId,
+      );
       return {
         ...student,
         status: update ? update.status : att ? att.status : "ยังไม่เช็คชื่อ",
@@ -156,23 +175,35 @@ function RetroactiveAttendance({ session }: { session: any }) {
         ? aVal.localeCompare(bVal, "th")
         : bVal.localeCompare(aVal, "th");
     });
-  }, [students, attendance, selectClasses, sortBy, sortOrder, dataUpdate, searchQuery]);
+  }, [
+    students,
+    attendance,
+    selectClasses,
+    sortBy,
+    sortOrder,
+    dataUpdate,
+    searchQuery,
+  ]);
 
   // Summary stats
   const stats = useMemo(() => {
     const total = mergedData.length;
-    const present = mergedData.filter((s) => s.status === "เข้าร่วมกิจกรรม").length;
+    const present = mergedData.filter(
+      (s) => s.status === "เข้าร่วมกิจกรรม",
+    ).length;
     const late = mergedData.filter((s) => s.status === "สาย").length;
     const leave = mergedData.filter((s) => s.status === "ลา").length;
     const absent = mergedData.filter((s) => s.status === "ขาด").length;
-    const unchecked = mergedData.filter((s) => s.status === "ยังไม่เช็คชื่อ").length;
+    const unchecked = mergedData.filter(
+      (s) => s.status === "ยังไม่เช็คชื่อ",
+    ).length;
     return { total, present, late, leave, absent, unchecked };
   }, [mergedData]);
 
   const totalPages = Math.ceil(mergedData.length / rowsPerPage);
   const pageData = mergedData.slice(
     (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+    currentPage * rowsPerPage,
   );
 
   const handleSort = (col: "studentId" | "name" | "classes" | "status") => {
@@ -185,10 +216,13 @@ function RetroactiveAttendance({ session }: { session: any }) {
   };
 
   const getSortIcon = (col: string) => {
-    if (sortBy !== col) return <ArrowUpDown size={14} className="ml-1 opacity-40" />;
-    return sortOrder === "asc"
-      ? <ArrowUp size={14} className="ml-1 text-amber-600" />
-      : <ArrowDown size={14} className="ml-1 text-amber-600" />;
+    if (sortBy !== col)
+      return <ArrowUpDown size={14} className="ml-1 opacity-40" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="ml-1 text-amber-600" />
+    ) : (
+      <ArrowDown size={14} className="ml-1 text-amber-600" />
+    );
   };
 
   const handleStatusChange = (studentId: string, newStatus: string) => {
@@ -207,7 +241,7 @@ function RetroactiveAttendance({ session }: { session: any }) {
           name: student.name,
           classes: student.classes,
           status: newStatus,
-          isNew: !att,
+          isFirstRecord: !att,
         },
       ];
     });
@@ -216,7 +250,11 @@ function RetroactiveAttendance({ session }: { session: any }) {
   const handleSubmit = async () => {
     if (dataUpdate.length === 0) return;
     if (!isAdmin && (!reason || reason.trim() === "")) {
-      Swal.fire("กรุณาระบุเหตุผล", "ครูต้องระบุเหตุผลในการเช็คชื่อย้อนหลัง", "warning");
+      Swal.fire(
+        "กรุณาระบุเหตุผล",
+        "ครูต้องระบุเหตุผลในการเช็คชื่อย้อนหลัง",
+        "warning",
+      );
       return;
     }
 
@@ -239,11 +277,20 @@ function RetroactiveAttendance({ session }: { session: any }) {
       const res = await fetch("/api/scanAttendance/retroactive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: selectedDate, changes: dataUpdate, reason }),
+        body: JSON.stringify({
+          date: selectedDate,
+          changes: dataUpdate,
+          reason,
+        }),
       });
       const data = await res.json();
       if (data.success) {
-        Swal.fire({ title: "สำเร็จ", text: data.message, icon: "success", timer: 3000 });
+        Swal.fire({
+          title: "สำเร็จ",
+          text: data.message,
+          icon: "success",
+          timer: 3000,
+        });
         setDataUpdate([]);
         setReason("");
         fetchData(selectedDate);
@@ -279,9 +326,13 @@ function RetroactiveAttendance({ session }: { session: any }) {
               <CalendarClock size={28} />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">เช็คชื่อย้อนหลัง</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">
+                เช็คชื่อย้อนหลัง
+              </h1>
               <p className="text-white/80 text-sm">
-                {isAdmin ? "Admin: บันทึกทันที" : "ครู: ส่งคำขอให้ Admin อนุมัติ"}
+                {isAdmin
+                  ? "Admin: บันทึกทันที"
+                  : "ครู: ส่งคำขอให้ Admin อนุมัติ"}
               </p>
             </div>
           </div>
@@ -318,12 +369,54 @@ function RetroactiveAttendance({ session }: { session: any }) {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4">
         {[
-          { label: "ทั้งหมด", val: stats.total, icon: Users, bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-700" },
-          { label: "เข้าร่วม", val: stats.present, icon: UserCheck, bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
-          { label: "สาย", val: stats.late, icon: Clock, bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700" },
-          { label: "ลา", val: stats.leave, icon: Info, bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
-          { label: "ขาด", val: stats.absent, icon: UserX, bg: "bg-red-50", border: "border-red-200", text: "text-red-700" },
-          { label: "ยังไม่เช็ค", val: stats.unchecked, icon: Clock, bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-500" },
+          {
+            label: "ทั้งหมด",
+            val: stats.total,
+            icon: Users,
+            bg: "bg-slate-50",
+            border: "border-slate-200",
+            text: "text-slate-700",
+          },
+          {
+            label: "เข้าร่วม",
+            val: stats.present,
+            icon: UserCheck,
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+            text: "text-emerald-700",
+          },
+          {
+            label: "สาย",
+            val: stats.late,
+            icon: Clock,
+            bg: "bg-orange-50",
+            border: "border-orange-200",
+            text: "text-orange-700",
+          },
+          {
+            label: "ลา",
+            val: stats.leave,
+            icon: Info,
+            bg: "bg-yellow-50",
+            border: "border-yellow-200",
+            text: "text-yellow-700",
+          },
+          {
+            label: "ขาด",
+            val: stats.absent,
+            icon: UserX,
+            bg: "bg-red-50",
+            border: "border-red-200",
+            text: "text-red-700",
+          },
+          {
+            label: "ยังไม่เช็ค",
+            val: stats.unchecked,
+            icon: Clock,
+            bg: "bg-gray-50",
+            border: "border-gray-200",
+            text: "text-gray-500",
+          },
         ].map((card) => (
           <div
             key={card.label}
@@ -333,7 +426,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
               <card.icon size={16} className={card.text} />
               <span className="text-xs text-gray-500">{card.label}</span>
             </div>
-            <p className={`text-xl sm:text-2xl font-bold ${card.text}`}>{card.val}</p>
+            <p className={`text-xl sm:text-2xl font-bold ${card.text}`}>
+              {card.val}
+            </p>
           </div>
         ))}
       </div>
@@ -344,9 +439,14 @@ function RetroactiveAttendance({ session }: { session: any }) {
           {/* Search + Filter */}
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[200px]">
-              <label className="text-xs text-gray-500 block mb-1">ค้นหานักเรียน</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                ค้นหานักเรียน
+              </label>
               <div className="relative">
-                <Search size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search
+                  size={16}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
                   type="text"
                   placeholder="เลขประจำตัว หรือ ชื่อ..."
@@ -360,7 +460,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">ชั้นเรียน</label>
+              <label className="text-xs text-gray-500 block mb-1">
+                ชั้นเรียน
+              </label>
               <select
                 className="px-3 py-2 border border-gray-200 rounded-lg cursor-pointer text-sm outline-none focus:border-amber-400 transition-colors"
                 value={selectClasses}
@@ -370,7 +472,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
                 }}
               >
                 {classOptions.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
@@ -385,7 +489,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
                 className="px-3 py-2 border border-gray-200 rounded-lg cursor-pointer text-sm outline-none focus:border-amber-400 transition-colors"
               >
                 {[10, 25, 50, 75].map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
                 ))}
               </select>
             </div>
@@ -411,7 +517,8 @@ function RetroactiveAttendance({ session }: { session: any }) {
         {!isAdmin && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <label className="text-sm text-gray-600 block mb-1">
-              เหตุผลในการเช็คชื่อย้อนหลัง <span className="text-red-500">*</span>
+              เหตุผลในการเช็คชื่อย้อนหลัง{" "}
+              <span className="text-red-500">*</span>
             </label>
             <textarea
               value={reason}
@@ -437,7 +544,11 @@ function RetroactiveAttendance({ session }: { session: any }) {
               <thead>
                 <tr className="bg-lineat-to-r from-amber-50 to-orange-50 border-b border-amber-100">
                   {[
-                    { key: "studentId", label: "เลขประจำตัว", width: "w-[18%]" },
+                    {
+                      key: "studentId",
+                      label: "เลขประจำตัว",
+                      width: "w-[18%]",
+                    },
                     { key: "name", label: "ชื่อ-สกุล", width: "" },
                     { key: "classes", label: "ชั้นเรียน", width: "w-[18%]" },
                     { key: "status", label: "สถานะ", width: "w-[22%]" },
@@ -458,7 +569,9 @@ function RetroactiveAttendance({ session }: { session: any }) {
               <tbody className="divide-y divide-gray-100">
                 {pageData.length > 0 ? (
                   pageData.map((row, idx) => {
-                    const isModified = dataUpdate.some((u: any) => u.studentId === row.studentId);
+                    const isModified = dataUpdate.some(
+                      (u: any) => u.studentId === row.studentId,
+                    );
                     return (
                       <tr
                         key={row.studentId}
@@ -467,13 +580,23 @@ function RetroactiveAttendance({ session }: { session: any }) {
                         }`}
                       >
                         <td className="px-4 py-3">
-                          <span className="font-mono text-[#009EA3] font-medium">{row.studentId}</span>
+                          <span className="font-mono text-[#009EA3] font-medium">
+                            {row.studentId}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-800 text-nowrap">{row.name}</td>
-                        <td className="px-4 py-3 text-gray-600 text-nowrap"><div className="p-2 bg-blue-100 text-blue-500 rounded-md">{row.classes}</div></td>
+                        <td className="px-4 py-3 text-gray-800 text-nowrap">
+                          {row.name}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 text-nowrap">
+                          <div className="p-2 bg-blue-100 text-blue-500 rounded-md">
+                            {row.classes}
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${getStatusDot(row.status)} shrink-0`} />
+                            <div
+                              className={`w-2 h-2 rounded-full ${getStatusDot(row.status)} shrink-0`}
+                            />
                             <select
                               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium outline-none cursor-pointer transition-all border ${
                                 isModified
@@ -481,14 +604,22 @@ function RetroactiveAttendance({ session }: { session: any }) {
                                   : "border-gray-200"
                               } ${getStatusColor(row.status)}`}
                               value={row.status}
-                              onChange={(e) => handleStatusChange(row.studentId, e.target.value)}
+                              onChange={(e) =>
+                                handleStatusChange(
+                                  row.studentId,
+                                  e.target.value,
+                                )
+                              }
                             >
                               {statusOptions.map((opt) => (
                                 <option
                                   key={opt.value}
                                   value={opt.value}
                                   className="text-black bg-white"
-                                  disabled={opt.value === "ยังไม่เช็คชื่อ" && row.hasAttendance}
+                                  disabled={
+                                    opt.value === "ยังไม่เช็คชื่อ" &&
+                                    row.hasAttendance
+                                  }
                                 >
                                   {opt.label}
                                 </option>
@@ -501,7 +632,10 @@ function RetroactiveAttendance({ session }: { session: any }) {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-4 py-12 text-center text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="px-4 py-12 text-center text-gray-400"
+                    >
                       <Users size={32} className="mx-auto mb-2 opacity-40" />
                       ไม่พบข้อมูลนักเรียน
                     </td>

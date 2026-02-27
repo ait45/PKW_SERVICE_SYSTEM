@@ -5,7 +5,7 @@ interface IChangeItem {
   name: string;
   classes: string;
   status: string;
-  isNew: boolean; // true = ยังไม่มีเช็คชื่อวันนั้น, false = แก้ไขสถานะเดิม
+  isFirstRecord: boolean; // true = ยังไม่มีเช็คชื่อวันนั้น, false = แก้ไขสถานะเดิม
 }
 
 interface IRetroactiveRequest {
@@ -27,7 +27,7 @@ const ChangeItemSchema = new Schema(
     name: { type: String, required: true },
     classes: { type: String, required: true },
     status: { type: String, required: true },
-    isNew: { type: Boolean, required: true },
+    isFirstRecord: { type: Boolean, required: true },
   },
   { _id: false },
 );

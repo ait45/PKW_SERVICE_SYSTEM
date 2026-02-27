@@ -259,7 +259,7 @@ export async function update_behaviorScore(
  */
 export async function update_behaviorScore_retroactive(
   list: Array<{
-    isNew: boolean;
+    isFirstRecord: boolean;
     studentId: string;
     name: string;
     classes: string;
@@ -276,7 +276,7 @@ export async function update_behaviorScore_retroactive(
     const setting = await readConfig();
 
     for (const item of list) {
-      const { isNew, studentId, status, handler } = item;
+      const { isFirstRecord, studentId, status, handler } = item;
 
       let diffComeDays = 0;
       let diffLeaveDays = 0;
@@ -289,7 +289,7 @@ export async function update_behaviorScore_retroactive(
         setting.Scorededucted_absentAttendance || 0,
       );
 
-      if (isNew) {
+      if (isFirstRecord) {
         // INSERT ข้อมูลใหม่ย้อนหลัง
         const query = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, CREATED_AT) VALUES (?, ?, ?, ?, ?, ?)`;
         const dateTimestamp = new Date(`${targetDate}T08:00:00`);

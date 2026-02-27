@@ -24,7 +24,7 @@ interface ChangeItem {
   name: string;
   classes: string;
   status: string;
-  isNew: boolean;
+  isFirstRecord: boolean;
 }
 
 interface RetroactiveRequestData {
@@ -519,12 +519,12 @@ function RetroactiveApproval() {
                                 <td className="px-3 py-2.5 text-center">
                                   <span
                                     className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                      change.isNew
+                                      change.isFirstRecord
                                         ? "bg-blue-50 text-blue-600 border border-blue-200"
                                         : "bg-amber-50 text-amber-600 border border-amber-200"
                                     }`}
                                   >
-                                    {change.isNew
+                                    {change.isFirstRecord
                                       ? "เช็คชื่อใหม่"
                                       : "แก้ไขสถานะ"}
                                   </span>

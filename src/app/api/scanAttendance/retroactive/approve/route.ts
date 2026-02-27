@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
       // บันทึกเช็คชื่อลง MariaDB + คำนวณคะแนนพฤติกรรม
       const changesWithHandler = request.changes.map((c) => ({
-        isNew: c.isNew,
+        isFirstRecord: c.isFirstRecord,
         studentId: c.studentId,
         name: c.name,
         classes: c.classes,
