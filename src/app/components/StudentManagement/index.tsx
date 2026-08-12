@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo, SyntheticEvent } from "react";
 import {
   Plus,
+  Phone,
   FileUser,
   UserPlus,
   UserPen,
@@ -17,20 +18,22 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  IdCardLanyard
 } from "lucide-react";
 import Swal from "sweetalert2";
 import ExcelImportModal from "@/app/components/ExcelImportModal";
 
 interface Student {
-  studentId: string;
-  password: string;
+  studentId: string | number;
+  password: string | number;
+  perFace: string;
   name: string;
   classes: string;
-  phone: string;
-  parentPhone: string;
-  number: string;
+  phone: string | number;
+  parentPhone: string | number;
+  number: string | number;
   plantData: string;
-  isAdmin: number;
+  isAdmin: number | boolean;
 }
 function StudentManagement({
   session,
@@ -50,6 +53,7 @@ function StudentManagement({
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     studentId: "",
     password: "",
+    perFace: "",
     name: "",
     classes: "",
     phone: "",
@@ -81,6 +85,7 @@ function StudentManagement({
       setNewStudent({
         studentId: "",
         password: "",
+        perFace: "",
         name: "",
         classes: "",
         phone: "",
@@ -112,12 +117,12 @@ function StudentManagement({
   // ฟังก์ชั่นเช็คการกรอกข้อมูลต่าง ๆ
   const validateForm = () => {
     const newError: Record<string, string> = {};
-    if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัว!";
-    if (!newStudent.name) newError.name = "กรุณากรอกชื่อ!";
+    if (!newStudent.studentId) newError.studentId = "กรุณากรอกเลขประจำตัวนักเรียน";
+    if (!newStudent.name) newError.name = "กรุณากรอกชื่อ-นามสกุล";
     if (!newStudent.classes) newError.classes = "กรุณาเลือกชั้นเรียน";
-    if (newStudent.phone && newStudent.phone.length < 12)
+    if (newStudent.phone && newStudent.phone.toString().length < 12)
       newError.phone = "กรุณากรอกเบอร์มือถือให้ครบ";
-    if (newStudent.parentPhone && newStudent.parentPhone.length < 12)
+    if (newStudent.parentPhone && newStudent.parentPhone.toString().length < 12)
       newError.parentPhone = "กรุณากรอกเบอร์มือถือให้ครบ";
 
     return newError;
@@ -135,9 +140,8 @@ function StudentManagement({
     document.body.classList.add("loading");
     try {
       Swal.fire({
-        titleText: `${
-          isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
-        }`,
+        titleText: `${isFormUpdate ? "ยืนยันการแก้ไขข้อมูล" : "ยืนยันการเพิ่มข้อมูล"
+          }`,
         icon: "question",
         width: "80%",
         showConfirmButton: true,
@@ -307,6 +311,7 @@ function StudentManagement({
     setNewStudent({
       studentId: dataBeforeUpdate[0].studentId,
       password: dataBeforeUpdate[0].password,
+      perFace: dataBeforeUpdate[0].perFace,
       name: dataBeforeUpdate[0].name,
       classes: dataBeforeUpdate[0].classes,
       phone: dataBeforeUpdate[0].phone,
@@ -439,120 +444,137 @@ function StudentManagement({
   return (
     // หน้าจัดการนักเรียน
     <div className="p-4">
-      <div className="bg-white rounded-lg shadow-lg p-4">
-        <div className="flex items-center mb-3">
-          <div className="bg-blue-500 mr-3 p-2 rounded-md text-white">
-            <FileUser />
-          </div>
-          <div>
-            <h2 className="text-lg sm:text-2xl font-bold text-slate-800">
-              จัดการข้อมูลนักเรียน
-            </h2>
-            <p className="text-xs text-slate-600">
-              เพิ่ม แก้ไข ลบ ข้อมูลนักเรียน
-            </p>
-          </div>
+      <div className="flex items-center mb-3">
+        <div className="bg-blue-500 mr-3 p-2 rounded-md text-white">
+          <FileUser />
         </div>
-        {/* ฟอร์มเพิ่มนักเรียน */}
-        <button
-          onClick={() => {
-            setIsFormUpdate(false);
-            openModel();
-          }}
-          className="bg-blue-500 hover:bg-blue-700 text-white  px-3 py-2 rounded-lg shadow-lg transition-colors flex items-center"
-        >
-          <UserRoundPlus size={20} className="mr-2" />
-          เพิ่มข้อมูลนักเรียน
-        </button>
+        <div>
+          <h2 className="text-lg sm:text-2xl font-bold text-slate-800">
+            จัดการข้อมูลนักเรียน
+          </h2>
+          <p className="text-xs text-slate-600">
+            เพิ่ม แก้ไข ลบ ข้อมูลนักเรียน
+          </p>
+        </div>
+      </div>
+      {/* ฟอร์มเพิ่มนักเรียน */}
+      <button
+        onClick={() => {
+          setIsFormUpdate(false);
+          openModel();
+        }}
+        className="bg-blue-500 hover:bg-blue-700 text-white  px-3 py-2 rounded-lg shadow-lg transition-colors flex items-center"
+      >
+        <UserRoundPlus size={20} className="mr-2" />
+        เพิ่มข้อมูลนักเรียน
+      </button>
 
-        {/* Modal Overlay */}
-        {isOpenModel && (
-          <div className="fixed h-full inset-0 flex items-center justify-center z-50">
-            <div
-              onClick={closeModel}
-              className="fixed inset-0 bg-slate-50 h-full"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
-            />
-            <div className="w-[85%] md:w-[50%] h-[70vh] bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-2xl p-2 overflow-y-scroll hide-scrollbar top-0 ring-2 ring-slate-100/20 transition-all duration-600">
-              <div className="px-6 py-4 space-y-5 ">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center">
-                    <div
-                      className={`${
-                        isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
+      {/* Modal Overlay */}
+      {isOpenModel && (
+        <div className="fixed h-full inset-0 flex items-center justify-center z-100 animate-fadeIn">
+          <div
+            onClick={closeModel}
+            className="fixed inset-0 bg-slate-50 h-full backdrop-blur"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
+          />
+          <div className="w-[85%] md:w-[50%] h-[70vh] bg-white bg-opacity-10 backdrop-blur-2xl shadow-2xl rounded-md p-2 overflow-y-scroll hide-scrollbar top-0 ring-2 ring-slate-100/20 transition-all duration-600">
+            <div className="px-6 py-4 space-y-5 ">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center">
+                  <div
+                    className={`${isFormUpdate ? "bg-amber-500" : "bg-emerald-500"
                       } mr-2 text-white p-2 rounded-md`}
-                    >
-                      {isFormUpdate ? <UserPen /> : <UserPlus />}
-                    </div>
+                  >
+                    {isFormUpdate ? <UserPen /> : <UserPlus />}
+                  </div>
+                  <div>
                     <h1 className="text-base sm:text-2xl font-bold">
                       {isFormUpdate
                         ? "แก้ไขข้อมูลนักเรียน"
                         : "เพิ่มนักเรียนใหม่"}
+
                     </h1>
-                  </div>
-                  <div>
-                    <button
-                      onClick={() => closeModel()}
-                      title="ปิด"
-                      className=" hover:bg-slate-300 transition-all cursor-pointer rounded-full p-1.5"
-                    >
-                      <X size={15} />
-                    </button>
+                    <p className="text-xs sm:text-sm text-blue-500">
+                      กรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ
+                    </p>
                   </div>
                 </div>
-                <hr className="mb-2 text-[#8AFBFF] m-auto" />
-                <p className="text-xs sm:text-sm text-blue-500">
-                  กรอกข้อมูลให้ครบ เพื่อบันทึกลงระบบ
-                </p>
+                <div>
+                  <button
+                    onClick={() => closeModel()}
+                    title="ปิด"
+                    className=" hover:bg-slate-300 transition-all cursor-pointer rounded-full p-1.5"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
               </div>
+              <hr className="mb-2 text-[#888888] m-auto" />
 
-              <div className="block gap-6 px-2 sm:px-6">
-                <div className="flex flex-col mb-1">
+            </div>
+
+            <div className="block gap-6 px-6 ">
+              <div className="flex flex-col mb-4">
+                <div>
                   <label
                     htmlFor="studentId"
-                    className="text-sm text-slate-500 ml-2"
+                    className="text-sm text-blue-500 ml-2"
                   >
                     เลขประจำตัวนักเรียน
                   </label>
-                  <input
-                    id="studentId"
-                    type="number"
-                    name="studentId"
-                    min="0"
-                    value={newStudent.studentId}
-                    onChange={handleInputChange}
-                    disabled={isFormUpdate}
-                    className={`px-4 py-2 h-10 sm:h-12 w-[40%] border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.studentId ? "border-red-500" : "border-slate-300"
-                    } focus:ring-blue-500 ${
-                      isFormUpdate
-                        ? "text-slate-400 cursor-not-allowed"
-                        : "text-slate-900"
-                    }`}
-                    placeholder="xxxx"
-                  />
-                  {errors.studentId && (
-                    <p className=" text-xs sm:text-sm text-red-600 ml-1">
-                      {errors.studentId}
-                    </p>
-                  )}
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <IdCardLanyard className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <input
+                      id="studentId"
+                      type="number"
+                      name="studentId"
+                      min="0"
+                      value={newStudent.studentId}
+                      onChange={handleInputChange}
+                      disabled={isFormUpdate}
+                      className={`px-2 py-1 ring pl-8 ring-slate-400 rounded-sm w-full outline-none border transition-colors focus:ring-2 ${errors.studentId ? "border-red-500" : "border-slate-300"
+                        } focus:ring-blue-500 ${isFormUpdate
+                          ? "text-slate-400 cursor-not-allowed"
+                          : "text-slate-900"
+                        }`}
+                      placeholder="xxxx"
+                    />
+                  </div>
+
                 </div>
 
-                <div className="flex flex-col mb-2">
-                  <label htmlFor="name" className="text-sm text-slate-500 ml-2">
+                {errors.studentId && (
+                  <p className=" text-xs sm:text-sm text-red-600 ml-1">
+                    {errors.studentId}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2.5 w-full mb-2">
+                <div className="flex flex-col flex-1 mr-2">
+                  <label htmlFor="Preface" className="text-sm text-blue-500 ml-2">คำนำหน้า</label>
+                  <select name="Preface" id="Preface" onChange={handleInputChange} className="px-2 py-1.5 ring ring-slate-400 rounded-sm w-full outline-none border transition-colors  focus:ring-2  focus:ring-blue-500 cursor-pointer text-sm  sm:text-base">
+                    <option value="เด็กชาย">เด็กชาย</option>
+                    <option value="เด็กหญิง">เด็กหญิง</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นางสาว">นางสาว</option>
+                  </select>
+
+                </div>
+                <div className="flex flex-col flex-3">
+                  <label htmlFor="name" className="text-sm text-blue-500 ml-2">
                     ชื่อ-นามสกุล
                   </label>
                   <input
                     type="text"
                     id="name"
                     name="name"
-                    width="80%"
                     value={newStudent.name}
                     onChange={handleInputChange}
-                    className={`px-4 py-2 h-10 md:h-12 border rounded-lg focus:outline-none focus:ring-2 ${
-                      errors.name ? "border-red-500" : "border-slate-300"
-                    } focus:ring-blue-500`}
-                    placeholder="xxx xxxxxx xxxxxx"
+                    className={`px-2 py-1 ring ring-slate-400 rounded-sm w-full outline-none border transition-colors  focus:ring-2 ${errors.name ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500 min-w-fit`}
+                    placeholder="xxxxxx xxxxxx"
                   />
                   {errors.name && (
                     <p className="mt-1 text-xs sm:text-sm text-red-600 ml-1">
@@ -560,188 +582,184 @@ function StudentManagement({
                     </p>
                   )}
                 </div>
-                <div className="flex mb-1">
-                  <div className="flex flex-col w-[80%]">
+              </div>
+
+              <div className="flex w-full mb-2">
+                <div className="flex flex-col flex-1 mr-2">
+                  <label
+                    htmlFor="classes"
+                    className="text-sm text-blue-500 ml-2"
+                  >
+                    ชั้นเรียน
+                  </label>
+                  <select
+                    className={`px-2 py-1.5 ring ring-slate-400 rounded-sm w-full outline-none border transition-colors  focus:ring-2 ${errors.classes ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500 cursor-pointer text-sm  sm:text-base`}
+                    id="classes"
+                    name="classes"
+                    value={newStudent.classes}
+                    onChange={handleInputChange}
+                  >
+                    <option>เลือกชั้นเรียน</option>
+                    {classes.map((cls) => (
+                      <option key={cls} value={cls}>
+                        {cls}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.classes && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600 ml-1">
+                      {errors.classes}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col flex-1">
+                  <label
+                    htmlFor="Number"
+                    className="text-sm text-blue-500 ml-2"
+                  >
+                    เลขที่
+                  </label>
+                  <input
+                    type="text"
+                    id="Number"
+                    name="Number"
+                    value={newStudent.number || ""}
+                    onChange={handleInputChange}
+                    className={`px-2 py-1 ring ring-slate-400 rounded-sm w-full outline-none border transition-colors  focus:ring-2 ${errors.number ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500`}
+                    placeholder="xx"
+                  />
+                  {errors.number && (
+                    <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
+                      {errors.number}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="w-full flex flex-col px-6 mb-4">
+              <div className="lg:flex gap-2.5">
+                <div className="flex flex-col flex-1">
+                  <label
+                    htmlFor="phoneId"
+                    className="text-sm text-nowrap text-blue-500 ml-2"
+                  >
+                    เบอร์โทรนักเรียน
+                  </label>
+                  <input
+                    id="phoneId"
+                    type="tel"
+                    value={newStudent.phone || ""}
+                    maxLength={12}
+                    onChange={(e) =>
+                      setNewStudent({
+                        ...newStudent,
+                        phone: formatPhone(e.target.value),
+                      })
+                    }
+                    placeholder="xxx-xxx-xxxx"
+                    className={`px-2 py-1 border ring ring-slate-400 rounded-sm focus:outline-none focus:ring-2 ${errors.phone ? "border-red-500" : "border-slate-300"
+                      } focus:ring-blue-500`}
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col flex-1">
+                  <label
+                    htmlFor="parentPhoneId"
+                    className="text-sm text-nowrap text-blue-500 ml-2"
+                  >
+                    เบอร์โทรผู้ปกครอง
+                  </label>
+                  <input
+                    id="parentPhoneId"
+                    type="tel"
+                    value={newStudent.parentPhone || ""}
+                    maxLength={12}
+                    placeholder="xxx-xxx-xxxx"
+                    onChange={(e) =>
+                      setNewStudent({
+                        ...newStudent,
+                        parentPhone: formatPhone(e.target.value),
+                      })
+                    }
+                    className={`px-2 py-1 border ring ring-slate-400 rounded-sm outline-none focus:ring-2 ${errors.parentPhone
+                      ? "border-red-500"
+                      : "border-slate-300"
+                      } focus:ring-blue-500`}
+                  />
+                  {errors.parentPhone && (
+                    <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
+                      {errors.parentPhone}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {session?.user?.role === "teacher" && isFormUpdate && (
+                <div className="flex flex-col md:flex-row mt-2 gap-2.5">
+                  <div className="flex flex-col flex-1">
                     <label
-                      htmlFor="classes"
-                      className="text-sm text-slate-500 ml-2"
+                      htmlFor="plantData"
+                      className="text-sm text-slate-500 text-nowrap ml-2"
                     >
-                      ชั้นเรียน
-                    </label>
-                    <select
-                      className={`px-4 py-2 h-10 md:h-12 w-fit border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.classes ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500 cursor-pointer w-[80%] text-sm  sm:text-base`}
-                      id="classes"
-                      name="classes"
-                      value={newStudent.classes}
-                      onChange={handleInputChange}
-                    >
-                      <option>เลือกชั้นเรียน</option>
-                      {classes.map((cls) => (
-                        <option key={cls} value={cls}>
-                          {cls}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.classes && (
-                      <p className="mt-1 text-xs sm:text-sm text-red-600 ml-1">
-                        {errors.classes}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor="Number"
-                      className="text-sm text-slate-500 ml-2"
-                    >
-                      เลขที่
+                      รหัสการเข้าสู่ระบบ
                     </label>
                     <input
                       type="text"
-                      id="Number"
-                      name="Number"
-                      min="0"
-                      value={newStudent.number || ""}
+                      id="plantData"
+                      name="plantData"
+                      value={newStudent.plantData}
+                      readOnly={true}
+                      className={`px-2 py-1 border ring ring-slate-400 rounded-sm outline-none border-slate-300 text-slate-400 cursor-copy`}
+                    />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <label
+                      htmlFor="isAdminToggle"
+                      className="text-sm text-slate-500 text-nowrap ml-2"
+                    >
+                      สิทธิ์การใช้งาน
+                    </label>
+                    <select
+                      name="isAdmin"
+                      id="isAdminToggle"
+                      className="px-2 py-1.5 border ring ring-slate-400 rounded-sm outline-none border-slate-300 cursor-pointer"
+                      value={newStudent.isAdmin ? 1 : 0}
                       onChange={handleInputChange}
-                      className={`px-4 py-2 h-10 md:h-12 w-20 border rounded-lg  focus:outline-none focus:ring-2 ${
-                        errors.number ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500`}
-                      placeholder="xx"
-                    />
-                    {errors.number && (
-                      <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
-                        {errors.number}
-                      </p>
-                    )}
+                    >
+                      <option value={0}>นักเรียน</option>
+                      <option value={1}>สภานักเรียน</option>
+                    </select>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col p-2 sm:p-6 w-[50%]">
-                <div className="lg:flex">
-                  <div className="flex flex-col mb-1 md:mr-4">
-                    <label
-                      htmlFor="phoneId"
-                      className="text-sm text-nowrap text-slate-500 ml-2"
-                    >
-                      เบอร์โทรนักเรียน
-                    </label>
-                    <input
-                      id="phoneId"
-                      type="tel"
-                      value={newStudent.phone || ""}
-                      maxLength={12}
-                      onChange={(e) =>
-                        setNewStudent({
-                          ...newStudent,
-                          phone: formatPhone(e.target.value),
-                        })
-                      }
-                      placeholder="xxx-xxx-xxxx"
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.phone ? "border-red-500" : "border-slate-300"
-                      } focus:ring-blue-500`}
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col mb-1 md:mr-4">
-                    <label
-                      htmlFor="parentPhoneId"
-                      className="text-sm text-nowrap text-slate-500 ml-2"
-                    >
-                      เบอร์โทรผู้ปกครอง
-                    </label>
-                    <input
-                      id="parentPhoneId"
-                      type="tel"
-                      value={newStudent.parentPhone || ""}
-                      maxLength={12}
-                      placeholder="xxx-xxx-xxxx"
-                      onChange={(e) =>
-                        setNewStudent({
-                          ...newStudent,
-                          parentPhone: formatPhone(e.target.value),
-                        })
-                      }
-                      className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg focus:outline-none focus:ring-2 ${
-                        errors.parentPhone
-                          ? "border-red-500"
-                          : "border-slate-300"
-                      } focus:ring-blue-500`}
-                    />
-                    {errors.parentPhone && (
-                      <p className="mt-1 text-xs sm:text-sm text-nowrap text-red-600 ml-1">
-                        {errors.parentPhone}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {session?.user?.role === "teacher" && isFormUpdate && (
-                  <div className="flex flex-col md:flex-row">
-                    <div className="flex flex-col mt-2 md:mt-0 mr-2">
-                      <label
-                        htmlFor="plantData"
-                        className="text-sm text-slate-500 text-nowrap ml-2"
-                      >
-                        รหัสการเข้าสู่ระบบ
-                      </label>
-                      <input
-                        type="text"
-                        id="plantData"
-                        name="plantData"
-                        value={newStudent.plantData}
-                        readOnly={true}
-                        className={`px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 text-slate-400 cursor-copy`}
-                      />
-                    </div>
-                    <div className="flex flex-col mt-2 md:mt-0">
-                      <label
-                        htmlFor="isAdminToggle"
-                        className="text-sm text-slate-500 text-nowrap ml-2"
-                      >
-                        สิทธิ์การใช้งาน
-                      </label>
-                      <select
-                        name="isAdmin"
-                        id="isAdminToggle"
-                        className="px-4 py-2 h-10 md:h-12 w-37.5 md:w-40 border rounded-lg outline-none border-slate-300 cursor-pointer"
-                        value={newStudent.isAdmin}
-                        onChange={handleInputChange}
-                      >
-                        <option value={0}>นักเรียน</option>
-                        <option value={1}>สภานักเรียน</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-end p-2">
-                {isFormUpdate ? (
-                  <button
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
-                    onClick={handleSubmit}
-                  >
-                    <Upload size={20} className="mr-2" />
-                    แก้ไขข้อมูล
-                  </button>
-                ) : (
-                  <button
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
-                    onClick={handleSubmit}
-                  >
-                    <Plus size={20} className="mr-2" />
-                    เพิ่มข้อมูล
-                  </button>
-                )}
-              </div>
+              )}
+            </div>
+            <div className="flex justify-end p-2">
+              {isFormUpdate ? (
+                <button
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
+                  onClick={handleSubmit}
+                >
+                  <Upload size={20} className="mr-2" />
+                  แก้ไขข้อมูล
+                </button>
+              ) : (
+                <button
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer"
+                  onClick={handleSubmit}
+                >
+                  <Plus size={20} className="mr-2" />
+                  เพิ่มข้อมูล
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <div className="mt-8 p-4 bg-white rounded-lg">
         <div className="flex justify-between items-center  mb-3">
           <div className="flex item-center">
@@ -780,7 +798,7 @@ function StudentManagement({
             <select
               value={rowsPerPage}
               onChange={handleRowChange}
-              className="px-2 py-1 text-sm border border-[#009EA3] rounded-md w-fit cursor-pointer"
+              className="px-2 py-1 text-sm border border-[#009EA3] outline-none rounded-md w-fit cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -850,22 +868,22 @@ function StudentManagement({
                     </td>
 
                     <td className="whitespace-nowrap p-2 text-center">
-                      <div className="bg-blue-500 text-white rounded-xl w-[80%] text-center">
+                      <div className="bg-blue-500 text-white rounded-xl text-center px-2">
                         {value.phone || "ไม่มีข้อมูล"}
                       </div>
                     </td>
                     <td className="whitespace-nowrap p-2 text-center">
-                      <div className="bg-blue-700 text-white rounded-xl w-[80%] text-center">
+                      <div className="bg-blue-700 text-white rounded-xl text-center px-2">
                         {value.parentPhone || "ไม่มีข้อมูล"}
                       </div>
                     </td>
                     <td className="whitespace-nowrap p-2 text-center">
-                      <div className="bg-green-500 text-white rounded-xl w-[80%] text-center">
+                      <div className="bg-green-500 text-white rounded-xl text-center px-2">
                         {value.classes || "ไม่มีข้อมูล"}
                       </div>
                     </td>
 
-                    <td>
+                    <td className="px-4 py-1.5">
                       <div className="flex justify-center-safe items-center-safe">
                         <button
                           className="bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer flex items-center transition-colors px-2 py-1 rounded-md mr-5"
@@ -915,9 +933,8 @@ function StudentManagement({
               <button
                 key={Page}
                 onClick={() => setNumberPager(Page)}
-                className={`mr-3 ${
-                  Page === NumberPager && "bg-blue-400 text-white "
-                } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
+                className={`mr-3 ${Page === NumberPager && "bg-blue-400 text-white "
+                  } outline outline-blue-400 rounded-sm px-3 py-1/2 cursor-pointer text-slate-500 hover:text-slate-700 transition-colors `}
               >
                 {Page}
               </button>

@@ -7,6 +7,7 @@ import type { Route } from "next";
 export default function DownloadPdf({ setBack }: { setBack: (back: string) => void }) {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isBlankIdStudent, setIsBlankIdStudent] = useState(false);
 
   useEffect(() => {
     const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

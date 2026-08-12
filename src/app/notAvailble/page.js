@@ -1,9 +1,9 @@
-import notAvailble from "./notAvailble";
+import NotAvailable from "./notAvailble";
 
 export const metadata = {
     title: "ระบบปิดให้บริการ",
 };
 
-export default function system_off() {
-    return <notAvailble />;
+export default function SystemOffPage() {
+    return <NotAvailable />;
 }

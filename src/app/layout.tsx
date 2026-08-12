@@ -9,13 +9,13 @@ import localFont from "next/font/local";
 const MyFontWeb = localFont({
   src: [
     {
-      path: "./assets/fonts/SukhumvitSet-Medium.woff2",
-      weight: "500",
+      path: "./assets/fonts/SF-Thonburi-regular.woff2",
+      weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SukhumvitSet-Bold.woff2",
-      weight: "700",
+      path: "./assets/fonts/SF-Thonburi-semibold.woff2",
+      weight: "600",
       style: "normal",
     },
   ],

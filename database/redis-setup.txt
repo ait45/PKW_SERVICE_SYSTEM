@@ -1,0 +1,29 @@
+# =============================================================================
+# PKW Attendance — Redis (ใช้สำหรับ rate limit / cache ตาม config/redis.ts)
+#
+# โปรเจกต์ใช้ connection string:
+#   REDIS_URL=redis://localhost:6379
+#   หรือ redis://:password@host:6379/0
+#
+# Redis ไม่มีคำสั่ง "CREATE DATABASE" แบบ SQL — ใช้หมายเลข logical database (0–15)
+# หรือแยก instance ตาม deployment
+# =============================================================================
+
+# --- ติดตั้งและเริ่ม Redis (Windows: ใช้ MSI หรือ WSL / Docker) ----------------
+# Docker ตัวอย่าง:
+#   docker run -d --name redis-pkw -p 6379:6379 redis:7-alpine
+
+# --- ทดสอบจากเทอร์มินัล -------------------------------------------------------
+# redis-cli -u redis://localhost:6379
+#   PING
+#   (ควรได้ PONG)
+
+# --- สร้างผู้ใช้ (Redis 6+ ACL) — ไม่บังคับถ้าใช้ localhost ไม่มีรหัส ------------
+# ACL SETUSER pkw-app on >your_strong_password ~* &* +@all -@dangerous
+# แล้วตั้ง REDIS_URL=redis://pkw-app:your_strong_password@host:6379/0
+
+# --- เลือก DB index (ค่าเริ่มต้น 0) -------------------------------------------
+# redis-cli
+#   SELECT 0
+
+# แอปสร้าง key เองเมื่อมีการเรียก rate limit — ไม่ต้องรัน migration

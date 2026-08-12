@@ -1,13 +1,14 @@
 module.exports = {
     apps: [
         {
-            name: 'pkw-service',
-            script: 'npx',
-            args: 'tsx server.ts',
+            name: 'pkw-service-system',
+            script: 'dist/server.js',
+            cwd: '/home/pkw745/PKW_SERVER_SYSTEM',
+            exec_mode: 'fork',
             instances: 1,
             autorestart: true,
             watch: false,
-            max_memory_restart: '1G',
+            max_memory_restart: '5G',
             env: {
                 NODE_ENV: 'production',
                 PORT: 3000,
@@ -16,6 +17,10 @@ module.exports = {
                 NODE_ENV: 'development',
                 PORT: 3000,
             },
+            node_args: [
+                "--max-old-space-size=4096",
+                "--no-warnings"
+            ],
             // Logging
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
             error_file: './logs/pm2-error.log',

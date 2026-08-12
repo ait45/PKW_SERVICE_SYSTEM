@@ -102,7 +102,7 @@ function UserInfo({ session, isMobile }: { session: any; isMobile: boolean }) {
         className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
         title={isMobile ? userName : "ข้อมูลผู้ใช้"}
       >
-        <div className="w-7 h-7 rounded-full bg-linear-to-br from-[#009EA3] to-[#188F6D] flex items-center justify-center text-white text-xs font-bold shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-[#009EA3] flex items-center justify-center text-white text-xs font-bold shadow-sm">
           {initials}
         </div>
         <span className="hidden sm:inline text-sm font-medium text-gray-700 max-w-[120px] truncate">
@@ -112,9 +112,9 @@ function UserInfo({ session, isMobile }: { session: any; isMobile: boolean }) {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-2 mr-4/ w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Gradient Header */}
-          <div className="relative px-4 py-4 bg-linear-to-r from-[#009EA3] to-[#188F6D]">
+          <div className="relative px-4 py-4 bg-[#009EA3]">
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors text-white/80 hover:text-white cursor-pointer"

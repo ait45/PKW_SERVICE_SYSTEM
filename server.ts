@@ -16,9 +16,9 @@ import cookie from "cookie";
 import { getToken } from "next-auth/jwt";
 
 // Environment variables
-const dev: boolean = process.env.NODE_ENV !== "production";
-const hostname: string = "[0.0.0.0]";
-const port: number = Number(process.env.PORT) || 3000;
+const dev = process.env.NODE_ENV !== "production";
+const hostname = "localhost";
+const port = Number(process.env.PORT) || 3000;
 
 // setting ratelimit api
 
@@ -77,6 +77,7 @@ app.prepare().then(() => {
         "/login",
         "/_next",
         "/favicon.ico",
+        "/admin",
       ];
       // ✅ ข้ามถ้าเป็น asset ภายใน Next.js เช่น /_next หรือ /__nextjs_*
       const isInternalAsset =

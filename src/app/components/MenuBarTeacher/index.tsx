@@ -34,7 +34,7 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             >
               <QrCode className="w-4 h-4 sm:w-6 sm:h-6" />
               <select
-                className="outline-none w-[20px] sm:w-[120px] text-sm focus:text-gray-900 cursor-pointer"
+                className="outline-none w-[60px] sm:w-[120px] text-xs focus:text-gray-900 cursor-pointer overflow-hidden"
                 value={currentPage}
                 onChange={(e) => handleChangePage(e.target.value)}
                 id="attendance"
@@ -46,11 +46,10 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             </div>
             <button
               onClick={() => handleChangePage("students")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === "students"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-600 hover:text-gray-800"
-              } cursor-pointer`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${currentPage === "students"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:text-gray-800"
+                } cursor-pointer`}
               title="นักเรียน"
             >
               <Users className="w-4 h-4 sm:w-6 sm:h-6" />
@@ -58,11 +57,10 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             </button>
             <button
               onClick={() => handleChangePage("schedule")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === "schedule"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-600 hover:text-gray-800"
-              } cursor-pointer`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${currentPage === "schedule"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:text-gray-800"
+                } cursor-pointer`}
               title="ตารางเรียน"
             >
               <Calendar className="w-4 h-4 sm:w-6 sm:h-6" />
@@ -70,11 +68,10 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             </button>
             <button
               onClick={() => handleChangePage("reports")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === "reports"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-600 hover:text-gray-800"
-              } cursor-pointer`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${currentPage === "reports"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:text-gray-800"
+                } cursor-pointer`}
               title="รายงาน"
             >
               <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
@@ -82,11 +79,10 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             </button>
             <button
               onClick={() => handleChangePage("statistics")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === "statistics"
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-600 hover:text-gray-800"
-              } cursor-pointer`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${currentPage === "statistics"
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:text-gray-800"
+                } cursor-pointer`}
               title="สถิติ"
             >
               <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6" />

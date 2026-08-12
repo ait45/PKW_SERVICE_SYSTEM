@@ -5,9 +5,6 @@ import Student from "../models/Mongo.model.Student";
 import Teacher from "../models/Mongo.model.Teacher";
 import bcrypt from "bcrypt";
 import type { ObjectId } from "mongoose";
-import { NextResponse } from "next/server";
-
-const statusDevelopment = process.env.NODE_ENV;
 // show Error Message
 class AuthError extends CredentialsSignin {
   constructor(message: string) {
@@ -75,9 +72,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           } else if (username === process.env.USER_LOGIN) {
             if (password === process.env.PASS_LOGIN) {
               return {
-                id: "1",
-                username: process.env.USER_LOGIN,
-                name: "Admin",
+                id: "env-system-admin",
+                username,
+                name: "ผู้ดูแลระบบ",
+                // ให้สอดคล้องกับ server.ts เมื่อระบบปิด (ต้องเป็น teacher + isAdmin)
                 role: "teacher",
                 isAdmin: true,
               };
@@ -141,9 +139,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        ((token.id = user.id),
-          (token.username = user.username),
-          (token.name = user.name));
+        token.id = user.id;
+        token.username = user.username;
+        token.name = user.name;
         token.isAdmin = user.isAdmin;
         token.role = user.role;
       }
@@ -151,9 +149,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      ((session.id = token.id as string),
-        (session.user.username = token.username as string),
-        (session.user.name = token.name as string));
+      session.id = token.id as string;
+      session.user.username = token.username as string;
+      session.user.name = token.name as string;
       session.user.role = token.role as string;
       session.user.isAdmin = token.isAdmin as boolean;
       return session;

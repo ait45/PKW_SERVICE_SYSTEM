@@ -1,0 +1,56 @@
+// =============================================================================
+// PKW Attendance — MongoDB / Mongoose: สร้างฐานข้อมูลและคอลเลกชัน
+// อ้างอิงจาก: MONGODB_URI ใน .env และ src/models/Mongo.model.*.ts
+//
+// ฐานข้อมูลชื่อจริงมาจาก connection string เช่น
+//   mongodb://user:pass@host:27017/pkw_attendance?authSource=admin
+// ส่วนหลัง path คือชื่อ DB (ตัวอย่าง: pkw_attendance)
+//
+// Mongoose จะสร้างคอลเลกชันอัตโนมัติเมื่อมีการเขียนข้อมูลครั้งแรก
+// ไฟล์นี้ใช้ mongosh — รัน: mongosh "<MONGODB_URI>" แล้ว paste คำสั่งด้านล่าง
+// =============================================================================
+
+// ใช้ฐานข้อมูลจาก URI ของคุณ (แก้ชื่อให้ตรง)
+use('pkw_attendance');
+
+// --- คอลเลกชันที่ระบุชื่อใน Schema (collection: "...") -------------------------
+
+db.createCollection('ClientDB');
+// นักเรียน (โมเดล Student) — ฟิลด์หลัก: studentId, name, password, isAdmin, role, classes, Number, createdAt, updatedAt
+
+db.createCollection('TeacherDB');
+// ครู (โมเดล Teacher) — teacherId, password, name, role, isAdmin, createdAt, updatedAt
+
+db.createCollection('RetroactiveRequests');
+// คำขอแก้เช็คย้อนหลัง — requestedBy, requestedByName, targetDate, changes[], reason, status, ...
+
+db.createCollection('NotificationReads');
+// การอ่านประกาศ — notificationId (number), userId, userRole, readAt, createdAt, updatedAt
+// แนะนำ index ตาม schema:
+db.NotificationReads.createIndex(
+  { notificationId: 1, userId: 1 },
+  { unique: true, name: 'uniq_notification_user' }
+);
+
+db.createCollection('PasswordResetRequests');
+// คำขอรีเซ็ตรหัส — studentId, studentName, classes, reason, status, ...
+
+db.createCollection('IssueReports');
+// แจ้งปัญหา — type, title, description, reportedBy, studentId, status, priority, adminNote, ...
+
+db.createCollection('LineUsers');
+// ผู้ใช้ LINE — userId (unique), displayName, pictureUrl, role, isActive, ...
+db.LineUsers.createIndex({ userId: 1 }, { unique: true, name: 'uniq_line_userId' });
+
+db.createCollection('LineMessageLogs');
+// บันทึกส่ง LINE — messageType, recipientType, recipientId, status, sentBy, ...
+
+// =============================================================================
+// หมายเหตุ
+// - ไม่จำเป็นต้องรัน createCollection ล่วงหน้า ถ้าแอปจะสร้างเมื่อ insert ครั้งแรก
+// - หลัง import ข้อมูล ควรมี index บน studentId / teacherId ในแต่ละคอลเลกชัน
+//   ตามที่ใช้ใน authorize (findOne) — ตัวอย่าง:
+// =============================================================================
+
+db.ClientDB.createIndex({ studentId: 1 }, { unique: true, name: 'uniq_studentId' });
+db.TeacherDB.createIndex({ teacherId: 1 }, { unique: true, name: 'uniq_teacherId' });

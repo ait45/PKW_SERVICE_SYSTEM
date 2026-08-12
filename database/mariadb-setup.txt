@@ -1,0 +1,178 @@
+-- =============================================================================
+-- PKW Attendance — MariaDB / MySQL: สร้างฐานข้อมูลและตาราง
+-- อ้างอิงจาก: src/lib/config.mariaDB.ts และ API routes
+--
+-- ตั้งค่าใน .env (ตัวอย่างชื่อตาราง — เปลี่ยนให้ตรงกับค่าจริงของคุณ):
+--   MARIA_DB_DATABASE=pkw_attendance
+--   MARIA_DB_TABLE_STUDENTS=data_students_pkw
+--   MARIA_DB_TABLE_ATTENDANCE=attendance_history_pkw
+--   MARIA_DB_TABLE_TEACHERS=teachers_pkw
+--   MARIA_DB_TABLE_EVENTS=events_pkw
+--   MARIA_DB_TABLE_EVENT_ATTENDANCE=event_attendance_pkw
+--   MARIA_DB_TABLE_SCHEDULE=schedule_pkw
+--   MARIA_DB_TABLE_NOTIFICATIONS=notifications_pkw
+--   MARIA_DB_TABLE_BEHAVIOR_HISTORY=behavior_history_pkw
+--
+-- ด้านล่างใช้ชื่อตารางตัวอย่างตามค่า default บางจุดในโค้ด — แก้ชื่อตารางใน
+-- CREATE ให้ตรงกับค่า MARIA_DB_* ของคุณ หรือใช้ find-replace ทั้งไฟล์
+-- =============================================================================
+
+CREATE DATABASE IF NOT EXISTS pkw_attendance
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE pkw_attendance;
+
+-- -----------------------------------------------------------------------------
+-- นักเรียน (MARIA_DB_TABLE_STUDENTS)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS data_students_pkw (
+  _id INT NOT NULL AUTO_INCREMENT,
+  STUDENT_ID VARCHAR(32) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  CLASSES VARCHAR(64) DEFAULT NULL,
+  PHONE VARCHAR(64) DEFAULT NULL,
+  PARENT_PHONE VARCHAR(64) DEFAULT NULL,
+  PLANT_PASSWORD VARCHAR(255) DEFAULT NULL COMMENT 'รหัสผ่านแบบอ่านได้สำหรับแจ้งนักเรียน (เก็บคู่กับ hash ใน Mongo)',
+  NUMBER VARCHAR(16) DEFAULT NULL,
+  JOIN_DAYS INT UNSIGNED DEFAULT 0,
+  LEAVE_DAYS INT UNSIGNED DEFAULT 0,
+  LATE_DAYS INT UNSIGNED DEFAULT 0,
+  ABSENT_DAYS INT UNSIGNED DEFAULT 0,
+  BEHAVIOR_SCORE INT DEFAULT 100,
+  IS_ADMIN TINYINT(1) NOT NULL DEFAULT 0,
+  EVENT_ABSENT_PERIODS INT UNSIGNED DEFAULT 0,
+  PRIMARY KEY (_id),
+  UNIQUE KEY uk_student_id (STUDENT_ID),
+  UNIQUE KEY unique_class_number (CLASSES, NUMBER)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- ครู (MARIA_DB_TABLE_TEACHERS)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS teachers_pkw (
+  TEACHER_ID VARCHAR(32) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  PASSWORD VARCHAR(255) NOT NULL COMMENT 'เก็บ plain ใน MariaDB ตามโค้ด POST — hash สำหรับล็อกอินอยู่ Mongo',
+  DEPARTMENT VARCHAR(128) DEFAULT NULL,
+  SUBJECT VARCHAR(255) DEFAULT NULL,
+  PHONE VARCHAR(64) DEFAULT NULL,
+  SUBJECT_GROUP VARCHAR(64) DEFAULT NULL,
+  IS_ADMIN TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (TEACHER_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- ประวัติเช็คชื่อรายวัน (MARIA_DB_TABLE_ATTENDANCE)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS attendance_history_pkw (
+  _id BIGINT NOT NULL AUTO_INCREMENT,
+  HANDLER VARCHAR(128) NOT NULL,
+  STUDENT_ID VARCHAR(32) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  CLASSES VARCHAR(64) NOT NULL,
+  STATUS VARCHAR(64) NOT NULL,
+  CREATED_AT DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (_id),
+  KEY idx_student_date (STUDENT_ID, CREATED_AT),
+  KEY idx_created (CREATED_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- หมายเหตุ: API ป้องกันเช็คซ้ำวันเดียวกันด้วย error 1062 — หากต้องการ enforce ที่ DB
+-- อาจเพิ่ม unique ตามนโยบาย เช่น (STUDENT_ID, DATE(CREATED_AT)) ใน MariaDB 10.4+
+
+-- -----------------------------------------------------------------------------
+-- กิจกรรม (MARIA_DB_TABLE_EVENTS)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS events_pkw (
+  ID INT NOT NULL AUTO_INCREMENT,
+  NAME VARCHAR(255) NOT NULL,
+  TYPE VARCHAR(64) NOT NULL DEFAULT 'activity',
+  DESCRIPTION TEXT,
+  EVENT_DATE DATE NOT NULL,
+  START_TIME TIME DEFAULT NULL,
+  END_TIME TIME DEFAULT NULL,
+  TARGET_CLASSES TEXT DEFAULT NULL,
+  PERIODS INT NOT NULL DEFAULT 1,
+  STATUS VARCHAR(32) NOT NULL DEFAULT 'upcoming',
+  CREATED_BY VARCHAR(255) DEFAULT NULL,
+  CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  UPDATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (ID),
+  KEY idx_event_date (EVENT_DATE)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- เช็คชื่อกิจกรรม (MARIA_DB_TABLE_EVENT_ATTENDANCE)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS event_attendance_pkw (
+  _id BIGINT NOT NULL AUTO_INCREMENT,
+  EVENT_ID INT NOT NULL,
+  HANDLER VARCHAR(128) DEFAULT NULL,
+  STUDENT_ID VARCHAR(32) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  CLASSES VARCHAR(64) NOT NULL,
+  STATUS VARCHAR(64) NOT NULL,
+  CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (_id),
+  KEY idx_event (EVENT_ID),
+  KEY idx_student (STUDENT_ID),
+  CONSTRAINT fk_event_attendance_event
+    FOREIGN KEY (EVENT_ID) REFERENCES events_pkw (ID)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- ตารางเรียน (MARIA_DB_TABLE_SCHEDULE)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS schedule_pkw (
+  ID INT NOT NULL AUTO_INCREMENT,
+  CLASS_ID VARCHAR(64) NOT NULL,
+  DAY_OF_WEEK TINYINT NOT NULL COMMENT '0=อาทิตย์ ... หรือตามที่ frontend ส่ง',
+  PERIOD TINYINT NOT NULL,
+  SUBJECT VARCHAR(255) NOT NULL,
+  TEACHER_ID VARCHAR(32) DEFAULT NULL,
+  ROOM VARCHAR(64) DEFAULT NULL,
+  PRIMARY KEY (ID),
+  UNIQUE KEY uk_class_day_period (CLASS_ID, DAY_OF_WEEK, PERIOD),
+  KEY idx_teacher (TEACHER_ID),
+  CONSTRAINT fk_schedule_teacher
+    FOREIGN KEY (TEACHER_ID) REFERENCES teachers_pkw (TEACHER_ID)
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- ประกาศ (MARIA_DB_TABLE_NOTIFICATIONS)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS notifications_pkw (
+  ID INT NOT NULL AUTO_INCREMENT,
+  TITLE VARCHAR(512) NOT NULL,
+  CONTENT MEDIUMTEXT NOT NULL,
+  TYPE VARCHAR(64) NOT NULL DEFAULT 'general',
+  TARGET_AUDIENCE VARCHAR(255) NOT NULL DEFAULT 'all',
+  EXPIRE_DATE DATE DEFAULT NULL,
+  IS_PINNED TINYINT(1) NOT NULL DEFAULT 0,
+  STATUS VARCHAR(32) NOT NULL DEFAULT 'active',
+  CREATED_BY VARCHAR(255) DEFAULT NULL,
+  CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  UPDATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (ID),
+  KEY idx_status_expire (STATUS, EXPIRE_DATE),
+  KEY idx_pinned_created (IS_PINNED, CREATED_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- ประวัติหักคะแนนพฤติกรรม (MARIA_DB_TABLE_BEHAVIOR_HISTORY)
+-- มีสคริปต์: npx tsx src/scripts/create_behavior_history_table.ts
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS behavior_history_pkw (
+  ID INT NOT NULL AUTO_INCREMENT,
+  STUDENT_ID VARCHAR(255) NOT NULL,
+  SCORE INT NOT NULL,
+  REASON TEXT,
+  TEACHER_ID VARCHAR(255) DEFAULT NULL,
+  CREATED_AT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (ID),
+  KEY idx_student (STUDENT_ID),
+  KEY idx_created (CREATED_AT)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

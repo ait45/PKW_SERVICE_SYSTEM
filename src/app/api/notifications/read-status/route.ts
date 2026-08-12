@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
       {
         success: true,
         unreadCount,
+        readIds,
         total: notificationIds.length,
         code: "SUCCESS",
       },

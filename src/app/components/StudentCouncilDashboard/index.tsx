@@ -214,9 +214,9 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
 
   const totalDays =
     DataUser.JOIN_DAYS +
-      DataUser.ABSENT_DAYS +
-      DataUser.LATE_DAYS +
-      DataUser.LEAVE_DAYS || 1;
+    DataUser.ABSENT_DAYS +
+    DataUser.LATE_DAYS +
+    DataUser.LEAVE_DAYS || 1;
 
   if (loading) {
     return <SkeletonStudentDashboard />;
@@ -288,16 +288,15 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
     <button
       title={label}
       onClick={() => setSelectedTab(id)}
-      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${
-        selectedTab === id
-          ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
-          : "text-gray-600 hover:bg-white/80 hover:shadow-md"
-      }`}
+      className={`relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all duration-300 ${selectedTab === id
+        ? "bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-pink-500/30"
+        : "text-gray-600 hover:bg-white/80 hover:shadow-md"
+        }`}
     >
       <Icon className="w-5 h-5" />
       <span className="hidden md:inline">{label}</span>
       {badge && badge > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
+        <span className="absolute -top-1 -right-1 min-w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
           {badge}
         </span>
       )}
@@ -343,7 +342,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
   const StatusIcon = statusStyles.icon;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-rose-50 to-pink-50">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-rose-50 to-pink-50 touch-manipulation">
       {/* Decorative background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-rose-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" />
@@ -397,7 +396,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               {/* Mobile Profile Popup */}
               {showDetailProfile && (
                 <div className="sm:hidden absolute left-16 top-20 z-50 animate-fadeIn">
-                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/20 min-w-[200px]">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/20 min-w-50">
                     <h2 className="font-bold text-gray-900">{DataUser.NAME}</h2>
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
                       <p>รหัส: {DataUser.STUDENT_ID}</p>
@@ -421,7 +420,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
               </button>
 
               <div
-                className={`${statusStyles.bg} rounded-2xl p-4 text-white shadow-lg min-w-[140px]`}
+                className={`${statusStyles.bg} rounded-2xl p-4 text-white shadow-lg min-w-35`}
               >
                 <div className="flex items-center gap-3">
                   <StatusIcon className="w-8 h-8" />
@@ -523,35 +522,32 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                     </h3>
                   </div>
                   <TrendingUp
-                    className={`w-5 h-5 ${
-                      DataUser.BEHAVIOR_SCORE >= 80
-                        ? "text-emerald-500"
-                        : "text-amber-500"
-                    }`}
+                    className={`w-5 h-5 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : "text-amber-500"
+                      }`}
                   />
                 </div>
 
                 <div className="text-center">
                   <div
-                    className={`text-6xl font-bold mb-4 ${
-                      DataUser.BEHAVIOR_SCORE >= 80
-                        ? "text-emerald-500"
-                        : DataUser.BEHAVIOR_SCORE >= 60
-                          ? "text-amber-500"
-                          : "text-red-500"
-                    }`}
+                    className={`text-6xl font-bold mb-4 ${DataUser.BEHAVIOR_SCORE >= 80
+                      ? "text-emerald-500"
+                      : DataUser.BEHAVIOR_SCORE >= 60
+                        ? "text-amber-500"
+                        : "text-red-500"
+                      }`}
                   >
                     {DataUser.BEHAVIOR_SCORE}
                   </div>
                   <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${
-                        DataUser.BEHAVIOR_SCORE >= 80
-                          ? "bg-linear-to-r from-emerald-400 to-green-500"
-                          : DataUser.BEHAVIOR_SCORE >= 60
-                            ? "bg-linear-to-r from-amber-400 to-orange-500"
-                            : "bg-linear-to-r from-red-400 to-rose-500"
-                      }`}
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ${DataUser.BEHAVIOR_SCORE >= 80
+                        ? "bg-linear-to-r from-emerald-400 to-green-500"
+                        : DataUser.BEHAVIOR_SCORE >= 60
+                          ? "bg-linear-to-r from-amber-400 to-orange-500"
+                          : "bg-linear-to-r from-red-400 to-rose-500"
+                        }`}
                       style={{ width: `${DataUser.BEHAVIOR_SCORE}%` }}
                     />
                   </div>
@@ -578,7 +574,7 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                   </div>
                 </div>
 
-                <div className="space-y-3 max-h-[200px] overflow-y-auto">
+                <div className="space-y-3 max-h-50 overflow-y-auto">
                   {loadingSchedule ? (
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500" />
@@ -928,34 +924,33 @@ const StudentCouncilDashboard = ({ session }: { session: any }) => {
                             {student.classes}
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">
+                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-medium">
                               {student.joinDays}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium">
+                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium">
                               {student.absentDays}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-sm font-medium">
+                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-sm font-medium">
                               {student.lateDays}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
+                            <span className="inline-flex items-center justify-center min-w-8 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
                               {student.leaveDays}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span
-                              className={`inline-flex items-center justify-center min-w-[40px] px-2 py-1 rounded-lg text-sm font-bold ${
-                                student.behaviorScore >= 80
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : student.behaviorScore >= 60
-                                    ? "bg-amber-100 text-amber-700"
-                                    : "bg-red-100 text-red-700"
-                              }`}
+                              className={`inline-flex items-center justify-center min-w-10 px-2 py-1 rounded-lg text-sm font-bold ${student.behaviorScore >= 80
+                                ? "bg-emerald-100 text-emerald-700"
+                                : student.behaviorScore >= 60
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-red-100 text-red-700"
+                                }`}
                             >
                               {student.behaviorScore}
                             </span>

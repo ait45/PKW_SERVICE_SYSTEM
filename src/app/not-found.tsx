@@ -20,7 +20,7 @@ export default function NotFound() {
   // Handle redirect when countdown reaches 0
   useEffect(() => {
     if (countdown === 0) {
-      router.replace("/login" as Route);
+      router.back();
     }
   }, [countdown, router]);
 

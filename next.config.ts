@@ -85,6 +85,14 @@ const nextConfig: NextConfig = {
 
   typedRoutes: true,
   eslint: { ignoreDuringBuilds: true },
+  async rewrites() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin/index'
+      }
+    ]
+  },
 };
 
 export default nextConfig;

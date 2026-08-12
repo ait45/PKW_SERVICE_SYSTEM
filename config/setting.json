@@ -12,7 +12,7 @@
     "retryDelayMs": 0
   },
   "system": {
-    "main_active": true
+    "main_active": false
   },
   "updatedAt": "2026-02-17T18:48:00.000Z"
 }

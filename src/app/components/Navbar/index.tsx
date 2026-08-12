@@ -34,7 +34,7 @@ function NavBar({ session }: { session?: any }) {
         alt="logo"
         className="m-1 sm:m-2"
       />
-      <h2 className="text-sm sm:text-lg font-bold cursor-default">
+      <h2 className="text-sm sm:text-lg fontHeading font-bold cursor-default">
         PKW SERVICE SYSTEM
       </h2>
       <div className="flex items-center justify-end ml-auto gap-2 ">
