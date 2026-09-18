@@ -10,20 +10,21 @@ type RouteParams = {
 };
 
 interface Student {
-  studentId: string;
+  studentId: string | number;
+  titles: string;
   name: string;
   classes: string;
-  phone: string;
-  parentPhone: string;
-  joinDays: number;
-  leaveDays: number;
-  lateDays: number;
-  absentDays: number;
-  behaviorScore: number;
-  status: string;
+  phone: string | number;
+  parentPhone: string | number;
+  joinDays: string | number;
+  leaveDays: string | number;
+  lateDays: string | number;
+  absentDays: string | number;
+  behaviorScore: string | number;
+  status: string | boolean;
   plantData: string;
-  Number: number;
-  isAdmin: boolean;
+  number: string | number;
+  isAdmin: boolean | number;
 }
 
 const StudentTable = process.env.MARIA_DB_TABLE_STUDENTS;
@@ -42,7 +43,7 @@ export async function DELETE(
       },
       { status: 401 },
     );
-    let conn: PoolConnection | undefined;
+  let conn: PoolConnection | undefined;
   try {
     const { id } = await params;
     await MongoDBConnection();
@@ -85,20 +86,26 @@ export async function PUT(
       },
       { status: 401 },
     );
-    let conn: PoolConnection | undefined;
+  let conn: PoolConnection | undefined;
   try {
     await MongoDBConnection();
-    const { name, classes, phone, parentPhone, isAdmin } = await req.json();
+    const { name, titles, classes, phone, parentPhone, isAdmin, number } = await req.json();
     const { id } = await params;
-    console.log(isAdmin);
 
     // ตัด 0 นำหน้าออกเพื่อเปรียบเทียบ
-    const query = `UPDATE ${StudentTable} SET NAME = ?, CLASSES = ?, PHONE = ?, PARENT_PHONE = ?, IS_ADMIN = ? WHERE TRIM(LEADING '0' FROM STUDENT_ID) = TRIM(LEADING '0' FROM ?)`;
+    const query = `UPDATE ${StudentTable} SET NAME = ?, TITLES = ?, CLASSES = ?, PHONE = ?, PARENT_PHONE = ?, NUMBER = ?, IS_ADMIN = ? WHERE TRIM(LEADING '0' FROM STUDENT_ID) = TRIM(LEADING '0' FROM ?)`;
 
     conn = await MariaDBConnection.getConnection();
     // สำหรับ MongoDB ใช้ regex เพื่อ match ทั้งแบบมีและไม่มี 0 นำหน้า
-    await Student.findOneAndUpdate({ studentId: { $regex: new RegExp(`^0*${id.replace(/^0+/, '')}$`) } }, { isAdmin: Number(isAdmin) === 1 ? true : false });
-    await conn.execute(query, [name, classes, phone, parentPhone, isAdmin, id]);
+    await Student.findOneAndUpdate(
+      { studentId: { $regex: new RegExp(`^0*${id.replace(/^0+/, '')}$`) } },
+      {
+        isAdmin: Number(isAdmin) === 1 ? true : false,
+        name: name,
+        preFace: titles,
+      }
+    );
+    await conn.execute(query, [name, titles, classes, phone, parentPhone, number, isAdmin, id]);
     return NextResponse.json(
       { success: true, message: "แก้ไขข้อมูลเสร็จสิ้น", code: "MODIFY_SUCCESS" },
       { status: 200 },
@@ -138,7 +145,7 @@ export async function GET(
     const { id } = await params;
     conn = await MariaDBConnection.getConnection();
     // ตัด 0 นำหน้าออกเพื่อเปรียบเทียบ
-    const query = `SELECT STUDENT_ID,NAME,CLASSES,PHONE,PARENT_PHONE,PLANT_PASSWORD,IS_ADMIN,BEHAVIOR_SCORE,NUMBER,JOIN_DAYS,LATE_DAYS,LEAVE_DAYS,ABSENT_DAYS,EVENT_ABSENT_PERIODS FROM ${StudentTable} WHERE TRIM(LEADING '0' FROM STUDENT_ID) = TRIM(LEADING '0' FROM ?)`;
+    const query = `SELECT STUDENT_ID, PREFACE, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, IS_ADMIN, BEHAVIOR_SCORE, NUMBER, JOIN_DAYS, LATE_DAYS, LEAVE_DAYS, ABSENT_DAYS, EVENT_ABSENT_PERIODS FROM ${StudentTable} WHERE TRIM(LEADING '0' FROM STUDENT_ID) = TRIM(LEADING '0' FROM ?)`;
 
     const res = await conn.execute(query, [id]);
     if (!res)

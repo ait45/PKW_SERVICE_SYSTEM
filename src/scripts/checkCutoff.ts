@@ -1,3 +1,5 @@
+'use server';
+
 import { Calculate_behaviorScore } from "./behaviorScore-deduction";
 import readConfig from "./readConfig";
 import { Holiday } from "./Holiday";
@@ -157,7 +159,7 @@ export async function autoCutoff(): Promise<AutoCutoffResult> {
     }
 
     // ดึงข้อมูลการเช็คชื่อวันนี้
-    const queryCheckedToday = `SELECT STUDENT_ID FROM ${attendanceTable} WHERE DATE(CREATED_AT) = CURDATE()`;
+    const queryCheckedToday = `SELECT STUDENT_ID FROM ${attendanceTable} WHERE Date = CURRENT_DATE()`;
     const checkedToday = await conn.query(queryCheckedToday);
     const checkedIds = new Set(
       checkedToday.map((s: { STUDENT_ID: string }) => s.STUDENT_ID),

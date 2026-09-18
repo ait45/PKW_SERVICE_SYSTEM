@@ -48,24 +48,25 @@ export async function POST(req: NextRequest) {
   let conn: PoolConnection | undefined;
   try {
     if (await attendanceStart()) {
+      console.log('start attendance');
       const post = await req.json();
-
       const id = typeof post.id === "object" ? post.id.id : post.id;
       conn = await MariaDBConnection.getConnection();
-      const status = await cutoff();
-      console.log([post.handler, status, id]);
-      const query: string = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS) SELECT ?, STUDENT_ID, NAME, CLASSES, ? FROM ${students_Table} WHERE STUDENT_ID = ?`;
-      const result = await conn.execute(query, [post.handler, status, id]);
-      if (result.affectedRows === 0) {
-        return NextResponse.json(
-          {
-            error: "Not Found",
-            message: "ไม่พบรหัสนักเรียนในระบบ",
-            code: "NOT_FOUND",
-          },
-          { status: 404 },
-        );
+      const checkDataStudent = await conn.query(`SELECT STUDENT_ID FROM ${students_Table} WHERE STUDENT_ID = ?`, [id]);
+      if (checkDataStudent.length === 0) {
+        return NextResponse.json({
+          error: 'Not Found',
+          message: 'ไม่พบรหัสนักเรียนในระบบ',
+          code: 'NOT_FOUND',
+        }, {
+          status: 404
+        });
       }
+      const status = await cutoff();
+      const date = new Date();
+      const formatDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+      const query: string = `INSERT INTO ${attendance_Table} (HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, DATE_SAVE) SELECT ?, STUDENT_ID, NAME, CLASSES, ? , CURDATE() FROM ${students_Table} WHERE STUDENT_ID = ?`;
+      await conn.execute(query, [post.handler, status, id]); console.log(`เช็คชื่อสำเร็จ: ${post.handler} - ${id} - ${status}`);
       return NextResponse.json(
         {
           success: true,
@@ -90,7 +91,8 @@ export async function POST(req: NextRequest) {
         error: "Internal Server Error",
         message: error,
         code: "INTERNAL_SERVER_ERROR",
-      });
+      }, { status: 500 },
+      );
     }
   } finally {
     if (conn) conn.release();

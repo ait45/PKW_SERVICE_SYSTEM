@@ -9,23 +9,40 @@ import Footer from "../components/Footer/page";
 import type { Route } from "next";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import "../globals.css";
 
-interface FormDataInterface {
-  username: string;
-  password: string;
+interface FormLoginInterface {
+  Username: string;
+  Password: string;
 };
 
+const ToastLogin = Swal.mixin({
+  toast: true,
+  position: 'top',
+  iconColor: 'white',
+  customClass: {
+    popup: 'colored-toast',
+  },
+  showCancelButton: false,
+  showConfirmButton: false,
+  timer: 3500,
+  timerProgressBar: true,
+});
+
 const loginSuccess = async () => {
-  await Swal.fire({ title: "เข้าสู่ระบบสำเร็จ", icon: "success", timer: 4000, showConfirmButton: false, width: "75%", });
-}
+  await ToastLogin.fire({
+    icon: 'success',
+    title: 'เข้าสู่ระบบสำเร็จ',
+  });
+};
 
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [FormData, setFormData] = useState<FormDataInterface>({
-    username: "",
-    password: "",
+  const [FormLogin, setFormLogin] = useState<FormLoginInterface>({
+    Username: "",
+    Password: "",
   });
 
   useEffect(() => {
@@ -50,7 +67,7 @@ export default function LoginPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormLogin((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -67,25 +84,25 @@ export default function LoginPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!FormData.username) {
+    if (!FormLogin.Username) {
       newErrors.username = "กรุณากรอกชื่อผู้ใช้";
-    } else if (!FormData.password) {
+    } if (!FormLogin.Password) {
       newErrors.password = "กรุณากรอกรหัสผ่าน";
-    } else if (!acceptTerms) {
+    } if (!acceptTerms) {
       newErrors.terms = "กรุณายอมรับข้อกำหนดการใช้งาน";
     }
 
     return newErrors;
   };
-  async function login(FormData: FormDataInterface) {
+  async function login(FormLogin: FormLoginInterface) {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
     setErrors({});
-    const username = FormData.username;
-    const password = FormData.password;
+    const username = FormLogin.Username;
+    const password = FormLogin.Password;
 
     try {
       const res = await signIn("credentials", {
@@ -155,7 +172,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="flex justify-center scale-80 sm:scale-100 mb-2">
+          <div className="flex justify-center scale-100 mb-2">
             <div className="h-12 w-12 bg-white rounded-full flex justify-center items-center mr-1 shadow">
               <Image src={logo} width={35} height={35} alt="logo" />
             </div>
@@ -164,10 +181,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <h2 className="text-lg md:text-3xl font-bold text-gray-900 mb-1">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
             PKW SERVICE SYSTEM
           </h2>
-          <hr className="max-w-40 md:max-w-80 text-[#2EF8FF] m-auto" />
+          <hr className="max-w-60 md:max-w-80 text-[#2EF8FF] m-auto" />
           <p className="text-[12px] md:text-sm text-gray-600">
             กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ
           </p>
@@ -175,28 +192,28 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-white  sm:py-8 py-6 sm:px-6 px-4 shadow-lg rounded-lg">
-          <form className="space-y-4 sm:space-y-6" action={(e) => startTransition(async () => {
-            await login(FormData);
+          <form className="space-y-4 sm:space-y-6" action={() => startTransition(async () => {
+            await login(FormLogin);
           })}>
             {/* Username Field */}
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-base font-medium text-gray-700 mb-1"
               >
                 ชื่อผู้ใช้
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-3.5 sm:h-5 w-3.5 sm:w-5 text-gray-400" />
+                  <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="username"
-                  name="username"
+                  name="Username"
                   type="text"
-                  value={FormData.username}
+                  value={FormLogin.Username}
                   onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.username ? "border-red-300" : "border-gray-300"
+                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.username ? "border-red-300" : "border-gray-300"
                     } outline-none`}
                   placeholder="กรอกชื่อผู้ใช้ของคุณ"
                 />
@@ -212,22 +229,22 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-base font-medium text-gray-700 mb-1"
               >
                 รหัสผ่าน
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-3.5 sm:h-5 w-3.5 sm:w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   id="password"
-                  name="password"
+                  name="Password"
                   type={showPassword ? "text" : "password"}
-                  value={FormData.password}
+                  value={FormLogin.Password}
                   onChange={handleInputChange}
 
-                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.password ? "border-red-300" : "border-gray-300"
+                  className={`block w-full pl-10 pr-1.5 sm:pr-3 py-2 sm:py-3 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${errors.password ? "border-red-300" : "border-gray-300"
                     } outline-none`}
                   placeholder="กรอกรหัสผ่านของคุณ"
                 />
@@ -265,11 +282,11 @@ export default function LoginPage() {
                         setErrors((prev) => ({ ...prev, terms: "" }));
                       }
                     }}
-                    className={`h-4 w-4 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3] outline-none`}
+                    className={`h-5 w-5 text-[#009EA3] focus:ring-[#009EA3] border-gray-300 rounded cursor-pointer accent-[#009EA3] outline-none`}
                   />
                   <label
                     htmlFor="accept-terms"
-                    className="ml-2 block text-[10px] sm:text-sm text-gray-700 cursor-pointer"
+                    className="ml-2 block text-sm text-gray-700 cursor-pointer"
                   >
                     ยอมรับ
                     <Link
@@ -283,7 +300,7 @@ export default function LoginPage() {
 
                 </div>
                 {errors.terms && (
-                  <p className="mt-1 text-[10px] sm:text-sm text-red-600">
+                  <p className="mt-1 text-[12px] sm:text-sm text-red-600">
                     {errors.terms}
                   </p>
                 )}
@@ -292,7 +309,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href={"/forget-password" as Route}
-                  className="font-medium text-[10px] sm:text-sm text-[#009EA3] hover:text-[#00CAD1] transition-colors"
+                  className="font-medium text-sm text-[#009EA3] hover:text-[#00CAD1] transition-colors"
                 >
                   ลืมรหัสผ่าน?
                 </a>
@@ -312,7 +329,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={isPending}
 
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors ${isPending
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-md font-medium rounded-lg text-white transition-colors ${isPending
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#009EA3] hover:bg-[#009EA3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   }`}
@@ -348,7 +365,7 @@ export default function LoginPage() {
             </div>
           </form>
           <div className="flex justify-center gap-4 text-xs text-gray-500 mt-3">
-            <p className="text-center text-xs text-gray-500 mt-3">
+            <p className="text-center text-sm text-gray-500 mt-3">
               กลับเข้าสู่{" "}
               <Link href="/" className="text-[#009EA3] hover:text-[#00CAD1] transition-colors">
                 หน้าแรก ?

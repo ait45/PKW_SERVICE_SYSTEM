@@ -34,7 +34,7 @@ function MenuBar({ currentPage, handleChangePage }: MenuBarProps) {
             >
               <QrCode className="w-4 h-4 sm:w-6 sm:h-6" />
               <select
-                className="outline-none w-[60px] sm:w-[120px] text-xs focus:text-gray-900 cursor-pointer overflow-hidden"
+                className="outline-none w-15 sm:w-30 text-xs focus:text-gray-900 cursor-pointer "
                 value={currentPage}
                 onChange={(e) => handleChangePage(e.target.value)}
                 id="attendance"

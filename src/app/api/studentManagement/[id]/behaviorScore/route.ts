@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { PoolConnection } from "mariadb";
 
 const TABLE_STUDENTS = process.env.MARIA_DB_TABLE_STUDENTS;
-const TABLE_HISTORY = process.env.MARIA_DB_TABLE_BEHAVIOR_HISTORY || "behavior_history_pkw";
+const TABLE_HISTORY = process.env.MARIA_DB_TABLE_BEHAVIOR_HISTORY;
 
 type RouteParams = {
   params: Promise<{ id: string }>;

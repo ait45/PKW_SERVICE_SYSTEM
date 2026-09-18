@@ -14,11 +14,12 @@ import { PoolConnection } from "mariadb/*";
 
 interface StudentImportData {
   studentId: string;
+  titles: string;
   name: string;
   classes?: string;
-  Number?: string;
-  phone?: string;
-  parentPhone?: string;
+  number?: string | number;
+  phone?: string | number;
+  parentPhone?: string | number;
 }
 
 interface ImportResult {
@@ -157,22 +158,24 @@ export async function POST(req: NextRequest) {
         const password = await bcrypt.hash(plantData, 10);
 
         const query = `INSERT INTO ${TABLE_STUDENTS} 
-          (STUDENT_ID, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, NUMBER) 
+          (STUDENT_ID, TITLES, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, NUMBER) 
           VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
         await conn.execute(query, [
           student.studentId,
+          student.titles,
           student.name,
           student.classes || null,
           student.phone || null,
           student.parentPhone || null,
           plantData,
-          student.Number || null,
+          student.number || null,
         ]);
 
         // Add to MongoDB for authentication
         await Student.create({
           studentId: student.studentId,
+          titles: student.titles,
           name: student.name,
           password: password,
         });
@@ -187,7 +190,7 @@ export async function POST(req: NextRequest) {
           if (message.includes("STUDENT_ID")) {
             errorMessage = `รหัสนักเรียน "${student.studentId}" ซ้ำในระบบ`;
           } else if (message.includes("unique_class_number")) {
-            errorMessage = `เลขที่ "${student.Number}" ซ้ำในห้อง ${student.classes}`;
+            errorMessage = `เลขที่ "${student.number}" ซ้ำในห้อง ${student.classes}`;
           } else {
             errorMessage = `ข้อมูลซ้ำ: ${message}`;
           }

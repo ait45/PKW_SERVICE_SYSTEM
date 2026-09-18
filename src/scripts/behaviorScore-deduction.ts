@@ -1,3 +1,5 @@
+'use server';
+
 import { MariaDBConnection } from "../lib/config.mariaDB";
 import type { PoolConnection } from "mariadb";
 import readConfig from "./readConfig.ts";
@@ -108,7 +110,7 @@ export async function update_behaviorScore(
 ): Promise<void> {
   let conn: PoolConnection | undefined;
   try {
-    console.log("[BehaviorScore-Deduction] start updata_begaviorScore...");
+    console.log("[BehaviorScore-Deduction] start update_behaviorScore...");
 
     conn = await MariaDBConnection.getConnection();
     const setting = await readConfig();
@@ -171,7 +173,7 @@ export async function update_behaviorScore(
         await conn.execute(sql, values);
         console.log("[BehaviorScore-Deduction] Calculate successfully...");
       } else {
-        const queryData_old: string = `SELECT STUDENT_ID, STATUS FROM ${attendance_Table} WHERE STUDENT_ID = ? AND DATE(CHECK_DATE) = CURDATE()`;
+        const queryData_old: string = `SELECT STUDENT_ID, STATUS FROM ${attendance_Table} WHERE STUDENT_ID = ? AND Date = CURRENT_DATE()`;
         const old_data_attendance = await conn.execute(queryData_old, [
           studentId,
         ]);

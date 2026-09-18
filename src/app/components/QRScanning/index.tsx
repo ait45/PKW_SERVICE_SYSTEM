@@ -1,33 +1,29 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
-import { Camera, QrCode, PowerOff } from "lucide-react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { Camera, QrCode, PowerOff, CheckCircle2, Zap } from "lucide-react";
 import Swal from "sweetalert2";
 import { Html5Qrcode } from "html5-qrcode";
 
+interface QRScanningProps {
+  onScan: (id: string) => void;
+  holiday: boolean;
+}
 
-function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
-
-  const [result, setResult] = useState<string>("");
+function QRScanning({ onScan, holiday }: QRScanningProps) {
   const [scanning, setScanning] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [torchOn, setTorchOn] = useState<boolean>(false);
+  const [torchSupported, setTorchSupported] = useState<boolean>(false);
+  const [scanCount, setScanCount] = useState<number>(0);
+  const [lastScanned, setLastScanned] = useState<string>("");
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
   const lastScanTime = useRef<number>(0);
-  const delay: number = 3000;
-
+  const delay: number = 1500;
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const nextPage = useRef(false);
-  const togglePageBeforeStop = () => {
-    nextPage.current = !nextPage.current;
-  };
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const handleScan = (data: string) => {
-    const json = {
-      id: data,
-    };
-    if (onScan) onScan(json);
-  };
+  const isScanningRef = useRef<boolean>(false); // ใช้แทน toggle เพื่อป้องกัน bug
+  const beepRef = useRef<HTMLAudioElement | null>(null);
+  const successTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const Toast = Swal.mixin({
     toast: true,
@@ -35,149 +31,156 @@ function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
     showConfirmButton: false,
   });
 
+  // Preload audio ครั้งเดียว
   useEffect(() => {
+    beepRef.current = new Audio("/scanner.mp3");
+    beepRef.current.preload = "auto";
+
     if (!html5QrCodeRef.current) {
       html5QrCodeRef.current = new Html5Qrcode("reader");
     }
+
     return () => {
-      if (nextPage.current) {
+      // cleanup เมื่อ unmount (เช่น เปลี่ยนหน้า)
+      if (isScanningRef.current && html5QrCodeRef.current) {
         Toast.fire({
           title: "กล้องจะปิดใช้งานเมื่อเปลี่ยนหน้า!",
           icon: "warning",
           timer: 2000,
         });
-        stopScanning();
+        html5QrCodeRef.current.stop().then(() => {
+          html5QrCodeRef.current?.clear();
+        }).catch(() => {
+          html5QrCodeRef.current?.clear();
+        });
+        isScanningRef.current = false;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleScan = useCallback((data: string) => {
+    // เล่นเสียง
+    if (beepRef.current) {
+      beepRef.current.currentTime = 0;
+      beepRef.current.play().catch(() => { });
+    }
+
+    setLastScanned(data);
+    setShowSuccess(true);
+    setScanCount((c) => c + 1);
+
+    // ซ่อน success indicator หลัง 2.5 วิ
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    successTimerRef.current = setTimeout(() => {
+      setShowSuccess(false);
+    }, 2500);
+
+    if (onScan) onScan(data);
+  }, [onScan]);
+
+  // ฟังก์ชันเปิด/ปิด Torch
+  const toggleTorch = async () => {
+    if (!html5QrCodeRef.current || !isScanningRef.current) return;
+    try {
+      const newState = !torchOn;
+      await (html5QrCodeRef.current as any).applyVideoConstraints({
+        advanced: [{ torch: newState }],
+      });
+      setTorchOn(newState);
+    } catch {
+      Toast.fire({ title: "อุปกรณ์ไม่รองรับไฟฉาย", icon: "error", timer: 2000 });
+    }
+  };
 
   // ฟังก์ชันหยุดสแกน
   const stopScanning = async () => {
-    togglePageBeforeStop();
     try {
       await Toast.fire({
         title: "กล้องกำลังปิด กรุณารอสักครู่",
         timer: 2000,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        didOpen: () => { Swal.showLoading(); },
       });
-      setScanning(false);
 
       if (html5QrCodeRef.current) {
-        await html5QrCodeRef.current
-          .stop()
-          .then(() => {
-            Toast.close();
-            html5QrCodeRef.current?.clear();
-          })
-          .catch(() => {
-            Toast.close();
-            html5QrCodeRef.current?.clear();
-          });
+        await html5QrCodeRef.current.stop()
+          .then(() => { html5QrCodeRef.current?.clear(); })
+          .catch(() => { html5QrCodeRef.current?.clear(); });
       }
       Toast.close();
-    } catch (error: Error |any) {
+    } catch (error: any) {
       Swal.fire({
         title: "ไม่สามารถปิดกล้องได้!",
-        text: error,
+        text: String(error),
         icon: "error",
         timer: 3000,
         showCloseButton: true,
       });
-    }
-    setScanning(false);
-
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext("2d");
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
+    } finally {
+      isScanningRef.current = false;
+      setScanning(false);
+      setTorchOn(false);
     }
   };
+
   const startScanning = async () => {
-    togglePageBeforeStop();
     setLoading(true);
     if (!html5QrCodeRef.current) return;
+
     Toast.fire({
       title: "กล้องกำลังเปิด กรุณารอสักครู่",
-      didOpen: () => {
-        Swal.showLoading();
-      },
+      didOpen: () => { Swal.showLoading(); },
     });
+
     try {
       const cameras = await Html5Qrcode.getCameras();
       const config = {
         fps: 25,
-        qrbox: { width: 150, height: 150 },
-        aspectRetio: 1.0,
-        showTorchButtonIfSupported: true,
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0,
+        showTorchButtonIfSupported: false, // จัดการ torch เองใน UI
       };
 
       if (cameras && cameras.length) {
-        setScanning(true);
-        Swal.close();
-        setLoading(false);
         await html5QrCodeRef.current
           .start(
             { facingMode: "environment" },
             config,
-            async (decodedText, decodedResult) => {
+            async (decodedText) => {
               const now = Date.now();
               if (now - lastScanTime.current < delay) return;
-
               lastScanTime.current = now;
-              // วาดกรอบรอบ QR ที่เจอ
-              if ((decodedResult?.result as any)?.points && canvasRef.current) {
-                const ctx = canvasRef.current.getContext("2d");
-                if (ctx) {
-                  const points = (decodedResult.result as any).points;
-                  ctx.clearRect(
-                    0,
-                    0,
-                    canvasRef.current.width,
-                    canvasRef.current.height
-                  );
-                  ctx.strokeStyle = "lime";
-                  ctx.lineWidth = 4;
-                  ctx.beginPath();
-                  ctx.moveTo(points[0].x, points[0].y);
-                  points.forEach((p: any, idx: number) => {
-                    if (idx > 0) ctx.lineTo(p.x, p.y);
-                  });
-                  ctx.closePath();
-                  ctx.stroke();
-                }
-              }
-              const beepSound = new Audio("/scanner.mp3");
-              beepSound.play();
-              setResult(decodedText);
-              handleScan(decodedText as any);
-              setTimeout(() => {
-                setResult("");
-              }, 500);
+              handleScan(decodedText);
             },
-            (errorMessage) => {
-              // parse error, ignore it.
-            }
+            () => { /* parse error — ignore */ }
           )
           .then(() => {
+            isScanningRef.current = true;
             setScanning(true);
+            Swal.close();
+            setLoading(false);
+
+            // ตรวจว่ารองรับ torch หรือไม่
+            const track = (html5QrCodeRef.current as any)
+              ?.getRunningTrackCapabilities?.();
+            if (track?.torch) setTorchSupported(true);
           })
           .catch((err) => {
+            setLoading(false);
             Swal.fire({
               title: "เริ่มสแกนไม่ได้!",
-              text: err,
+              text: String(err),
               timer: 3000,
               icon: "error",
               showConfirmButton: true,
             });
           });
       }
-    } catch (error: Error | any) {
+    } catch (error: any) {
+      setLoading(false);
       Swal.fire({
         title: "เริ่มสแกนไม่ได้!",
-        text: error,
+        text: String(error),
         timer: 3000,
         icon: "error",
         showConfirmButton: true,
@@ -187,75 +190,189 @@ function QRScanning({ onScan, holiday }: { onScan: any; holiday: boolean }) {
 
   return (
     <div
-      className={`bg-linear-to-br from-blue-50 to-indigo-100 rounded-md shadow-md py-8 px-4 ${
-        loading && "cursor-wait pointer-events-none"
-      }`}
+      className={`bg-white rounded-2xl shadow-lg border border-blue-100 p-5 ${loading ? "cursor-wait pointer-events-none" : ""
+        }`}
     >
-      <div className="max-w-md mx-auto">
+      <div className="max-w-sm mx-auto">
+
         {/* Header */}
-        <div className="bg-white rounded-t-2xl shadow-lg p-6">
-          <h1 className=" flex items-center justify-center text-2xl font-bold text-center text-gray-800 mb-2">
-            <Camera className="text-blue-500 mr-2" />
-            SCANNER
-          </h1>
-          <p className="text-center text-gray-600 text-sm">
-            กรุณาวาง QRcode ภายในกรอบ
-          </p>
-          <div className="flex mt-4">
-            <div
-              id="reader"
-              className="m-auto w-50 h-50 border-4 border-[#AFFDFF] shadow-lg bg-black relative"
-            />
-            {/* กรอบ Overlay */}
-            <canvas
-              ref={canvasRef}
-              width={120}
-              height={100}
-              className="absolute top-0 left-0"
-            />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-500 p-2 rounded-xl shadow-md shadow-blue-200">
+              <Camera className="text-white w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-blue-700 font-bold text-lg leading-none">QR Scanner</h2>
+              <p className="text-blue-400 text-xs">สแกน QR Code เพื่อเช็คชื่อ</p>
+            </div>
           </div>
+
+          {/* Scan count badge */}
+          {scanCount > 0 && (
+            <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
+              <CheckCircle2 className="text-emerald-500 w-3.5 h-3.5" />
+              <span className="text-emerald-600 text-xs font-semibold">{scanCount} สแกน</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-center gap-2 mt-2">
-          {!scanning ? (
+        {/* Status bar */}
+        <div className="flex items-center gap-2 mb-3 bg-blue-50 rounded-lg px-3 py-2">
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 ${scanning ? "bg-green-400 animate-pulse" : "bg-blue-300"
+              }`}
+          />
+          <span className="text-xs text-blue-600 font-medium">
+            {scanning ? "กำลังสแกน..." : loading ? "กำลังเปิดกล้อง..." : "กล้องปิดอยู่"}
+          </span>
+          {torchSupported && scanning && (
             <button
-              onClick={startScanning}
-              disabled={holiday}
-              className="relative z-10 flex items-center px-4 py-2 bg-green-500 hover:bg-green-700 hover:transition-colors text-white rounded-lg shadow disabled:cursor-not-allowed disabled:bg-green-700"
+              onClick={toggleTorch}
+              title="เปิด/ปิดไฟฉาย"
+              className={`ml-auto flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${torchOn
+                ? "bg-yellow-100 border border-yellow-300 text-yellow-700"
+                : "bg-white border border-blue-200 text-blue-500 hover:text-yellow-600 hover:border-yellow-300"
+                }`}
             >
-              เริ่มสแกน <QrCode width={20} height={20} className="ml-2" />
-            </button>
-          ) : (
-            <button
-              onClick={stopScanning}
-              className="relative z-10 flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 hover:transition-colors  text-white rounded-lg shadow"
-            >
-              หยุดสแกน <PowerOff width={20} height={20} className="ml-2" />
+              <Zap className="w-3 h-3" />
+              {torchOn ? "ปิดไฟ" : "เปิดไฟ"}
             </button>
           )}
         </div>
 
-        <div className="bg-white mt-2 p-4 m-auto">
-          <p className="font-semibold text-center">ข้อมูลการสแกน</p>
-          <hr className="text-gray-400 w-[80%] m-auto py-2" />
-          <p className="warp-break-words text-blue-600 text-center">
-            {result || "ไม่มีข้อมูล"}
-          </p>
+        {/* Viewfinder */}
+        <div className="relative mb-4 rounded-xl overflow-hidden border-2 border-blue-200 shadow-inner">
+          {/* Corner brackets overlay */}
+          <div className="absolute inset-0 z-10 pointer-events-none">
+            {/* top-left */}
+            <div className="absolute top-3 left-3 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-md" />
+            {/* top-right */}
+            <div className="absolute top-3 right-3 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-md" />
+            {/* bottom-left */}
+            <div className="absolute bottom-3 left-3 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-md" />
+            {/* bottom-right */}
+            <div className="absolute bottom-3 right-3 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-md" />
+
+            {/* Scan line animation */}
+            {scanning && (
+              <div className="absolute left-4 right-4 top-4 bottom-4 overflow-hidden rounded-lg">
+                <div className="scan-line" />
+              </div>
+            )}
+          </div>
+
+          {/* Camera feed */}
+          <div
+            id="reader"
+            className="w-full bg-blue-950"
+            style={{ minHeight: "280px" }}
+          />
+
+          {/* Success flash overlay */}
+          {showSuccess && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-emerald-500/20 animate-fade-out">
+              <div className="bg-emerald-500 rounded-full p-4 shadow-lg">
+                <CheckCircle2 className="text-white w-10 h-10" />
+              </div>
+            </div>
+          )}
+
+          {/* Placeholder เมื่อกล้องปิด */}
+          {!scanning && !loading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-blue-50/95">
+              <div className="bg-blue-100 rounded-2xl p-5 mb-3">
+                <QrCode className="text-blue-400 w-14 h-14" />
+              </div>
+              <p className="text-blue-400 text-sm font-medium">กดปุ่ม "เริ่มสแกน" เพื่อเปิดกล้อง</p>
+            </div>
+          )}
         </div>
+
+        {/* Last scanned result */}
+        {lastScanned && (
+          <div
+            className={`mb-4 px-4 py-3 rounded-xl border transition-all duration-500 ${showSuccess
+              ? "bg-emerald-50 border-emerald-200"
+              : "bg-blue-50 border-blue-200"
+              }`}
+          >
+            <p className="text-blue-400 text-xs mb-0.5">ผลล่าสุด</p>
+            <p
+              className={`font-mono text-sm font-semibold truncate ${showSuccess ? "text-emerald-600" : "text-blue-700"
+                }`}
+            >
+              {lastScanned}
+            </p>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {!scanning ? (
+            <button
+              onClick={startScanning}
+              disabled={holiday || loading}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-200 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm transition-colors shadow-md shadow-blue-200"
+            >
+              <QrCode className="w-4 h-4" />
+              เริ่มสแกน
+            </button>
+          ) : (
+            <button
+              onClick={stopScanning}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold text-sm transition-colors shadow-md shadow-red-200"
+            >
+              <PowerOff className="w-4 h-4" />
+              หยุดสแกน
+            </button>
+          )}
+        </div>
+
+        {holiday && (
+          <p className="text-center text-rose-500 text-xs mt-3 bg-rose-50 border border-rose-200 rounded-lg py-2">
+            ⚠ วันนี้เป็นวันหยุด ไม่สามารถสแกนได้
+          </p>
+        )}
       </div>
-      {/* ปรับสไตล์ video ภายใน html5-qrcode ให้พอดีกรอบ */}
-      <style jsx global>{`
+
+      {/* Styles สำหรับ html5-qrcode video + scan animation */}
+      <style>{`
         #reader video {
           width: 100% !important;
           height: 100% !important;
-          object-fit: cover !important; /* ครอบให้เต็มกรอบแบบไม่ยืด */
-          border-radius: 1rem; /* ให้โค้งตาม container (rounded-2xl) */
+          object-fit: cover !important;
+          border-radius: 0.75rem;
         }
-        /* ซ่อน control ภายใน lib ที่อาจเกินกรอบ */
         #reader__scan_region img,
         #reader__dashboard_section_csr,
         #reader__header_message {
           display: none !important;
+        }
+        #reader {
+          border: none !important;
+        }
+        @keyframes scanMove {
+          0%   { top: 8%; }
+          50%  { top: 88%; }
+          100% { top: 8%; }
+        }
+        .scan-line {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent);
+          box-shadow: 0 0 8px 2px rgba(96,165,250,0.6);
+          animation: scanMove 2.5s ease-in-out infinite;
+          border-radius: 1px;
+        }
+        @keyframes fadeOut {
+          0%   { opacity: 1; }
+          70%  { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        .animate-fade-out {
+          animation: fadeOut 2.5s ease forwards;
         }
       `}</style>
     </div>

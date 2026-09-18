@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
+import { addMonitorEvent } from "@/lib/monitor";
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
@@ -36,6 +36,28 @@ export function middleware(req: NextRequest) {
     login.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(login);
   }
+  const start = Date.now();
+  const response = NextResponse.next();
 
-  return NextResponse.next();
+  const duration = Date.now() - start;
+
+  const path = req.nextUrl.pathname;
+
+  // ไม่ monitor ตัว monitor เอง
+  if (!path.startsWith("/monitor")) {
+    addMonitorEvent({
+      timestamp: Date.now(),
+      method: req.method,
+      path,
+      status: response.status,
+      duration,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      ip:
+        req.headers.get("x-forwarded-for") ??
+        undefined,
+    });
+  }
+
+  return response;
+
 }

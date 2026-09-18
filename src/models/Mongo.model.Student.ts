@@ -1,18 +1,23 @@
 import mongoose, { Model, Schema } from "mongoose";
 
 interface IUser {
-  studentId: string;
+  studentId: string | number;
+  titles: string;
   name: string;
   password: string;
-  isAdmin: boolean;
+  isAdmin: boolean | number;
   classes: string;
-  phone: string;
-  
+  phone: string | number;
+
 }
 
 const UserSchema = new Schema(
   {
     studentId: {
+      type: String,
+      required: true,
+    },
+    titles: {
       type: String,
       required: true,
     },

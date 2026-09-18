@@ -11,20 +11,21 @@ const TABLE_STUDENTS = process.env.MARIA_DB_TABLE_STUDENTS;
 
 interface DataStudent {
   _id: string;
-  STUDENT_ID: string;
+  STUDENT_ID: string | number;
+  TITLES: string;
   NAME: string;
   CLASSES: string;
-  PHONE: string;
-  PARENT_PHONE: string;
-  STATUS: string;
+  PHONE: string | number;
+  PARENT_PHONE: string | number;
+  STATUS: string | boolean;
   PLANT_PASSWORD: string;
-  NUMBER: string;
-  JOIN_DAYS: string;
-  LEAVE_DAYS: string;
-  LATE_DAYS: string;
-  ABSENT_DAYS: string;
-  BEHAVIOR_SCORE: string;
-  IS_ADMIN: number;
+  NUMBER: string | number;
+  JOIN_DAYS: string | number;
+  LEAVE_DAYS: string | number;
+  LATE_DAYS: string | number;
+  ABSENT_DAYS: string | number;
+  BEHAVIOR_SCORE: string | number;
+  IS_ADMIN: number | boolean;
   EVENT_ABSENT_PERIODS: number;
 }
 
@@ -68,6 +69,7 @@ export async function GET() {
         return {
           _id: index._id,
           studentId: index.STUDENT_ID,
+          titles: index.TITLES,
           name: index.NAME,
           classes: index.CLASSES,
           phone: index.PHONE,
@@ -130,15 +132,16 @@ export async function POST(req: NextRequest) {
 
   let conn: PoolConnection | undefined;
   try {
-    const { studentId, name, classes, phone, parentPhone, number } =
+    const { studentId, titles, name, classes, phone, parentPhone, number } =
       await req.json();
     const plantData = await genPassword(5);
     const password = await bcrypt.hash(plantData, 10);
 
     conn = await MariaDBConnection.getConnection();
-    const query = `INSERT INTO ${TABLE_STUDENTS} (STUDENT_ID, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, NUMBER) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO ${TABLE_STUDENTS} (STUDENT_ID, TITLES, NAME, CLASSES, PHONE, PARENT_PHONE, PLANT_PASSWORD, NUMBER) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     await conn.execute(query, [
       studentId,
+      titles,
       name,
       classes,
       phone,
@@ -149,6 +152,7 @@ export async function POST(req: NextRequest) {
     await MongoDBConnection();
     await Student.create({
       studentId: studentId,
+      titles: titles,
       name: name,
       password: password,
     });
@@ -162,6 +166,7 @@ export async function POST(req: NextRequest) {
     if (error.code === "ER_DUP_ENTRY") {
       const message = error.sqlMessage || error.message;
       if (message.includes("STUDENT_ID")) {
+        console.log("Duplicate entry for STUDENT_ID");
         return NextResponse.json(
           {
             error: "student_id_exists",

@@ -359,9 +359,9 @@ function EventAttendanceCheck({ session }: { session: any }) {
         {/* QR Scanner and Manual Input */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* QR Scanner */}
-            <div className="h-auto">
+          <div className="h-auto">
             <QRScanning
-              onScan={(value: any) => setQrData(value)}
+              onScan={(id: string) => setQrData({ id })}
               holiday={!selectedEventId}
             />
           </div>
@@ -377,9 +377,8 @@ function EventAttendanceCheck({ session }: { session: any }) {
               </label>
               <div className="relative">
                 <IdCard
-                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
-                    emptyField ? "text-rose-500" : "text-blue-500"
-                  }`}
+                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${emptyField ? "text-rose-500" : "text-blue-500"
+                    }`}
                   size={20}
                 />
                 <input
@@ -391,11 +390,10 @@ function EventAttendanceCheck({ session }: { session: any }) {
                   }}
                   placeholder="1234"
                   disabled={!selectedEventId}
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 outline-none transition-colors ${
-                    emptyField
-                      ? "border-rose-500 ring-2 ring-rose-200"
-                      : "border-blue-200 focus:border-blue-400"
-                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 outline-none transition-colors ${emptyField
+                    ? "border-rose-500 ring-2 ring-rose-200"
+                    : "border-blue-200 focus:border-blue-400"
+                    } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
               </div>
               <button

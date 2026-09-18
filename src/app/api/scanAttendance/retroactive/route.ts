@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
   let conn: PoolConnection | undefined;
   try {
     conn = await MariaDBConnection.getConnection();
-    const query = `SELECT HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, CREATED_AT FROM ${attendance_Table} WHERE DATE(CREATED_AT) = ? ORDER BY CREATED_AT DESC`;
+    const query = `SELECT HANDLER, STUDENT_ID, NAME, CLASSES, STATUS, CREATED_AT, DATE_SAVE FROM ${attendance_Table} WHERE DATE(DATE_SAVE) = ? ORDER BY DATE_SAVE DESC`;
     const data = await conn.query(query, [date]);
 
     // ดึงข้อมูลนักเรียนทั้งหมดมาด้วย
@@ -106,6 +106,7 @@ export async function GET(req: NextRequest) {
           classes: row.CLASSES,
           status: row.STATUS,
           createdAt: row.CREATED_AT,
+          dateSave: row.DATE_SAVE,
         })),
         students: students.map((s: any) => ({
           studentId: s.STUDENT_ID,

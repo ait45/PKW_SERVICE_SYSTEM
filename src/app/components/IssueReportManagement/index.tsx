@@ -130,18 +130,18 @@ export default function IssueReportManagement() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          
-            <div className="flex items-start">
-              <span className="bg-blue-500 text-white p-2 rounded-md mr-1">
-                <Mailbox className="w-7 h-7"/>
-              </span>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 text-nowrap">จัดการเรื่องร้องเรียน</h1>
-              <p className="text-gray-500 text-xs m:text-sm">รายการแจ้งปัญหาและ <br className="sm:hidden"/>ข้อเสนอแนะจากผู้ใช้</p>
-              </div>
+
+          <div className="flex items-start">
+            <span className="bg-blue-500 text-white p-2 rounded-md mr-1">
+              <Mailbox className="w-7 h-7" />
+            </span>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800 text-nowrap">จัดการเรื่องร้องเรียน</h1>
+              <p className="text-gray-500 text-xs m:text-sm">รายการแจ้งปัญหาและ <br className="sm:hidden" />ข้อเสนอแนะจากผู้ใช้</p>
             </div>
-            
-          
+          </div>
+
+
           <button onClick={fetchReports} className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -149,11 +149,11 @@ export default function IssueReportManagement() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-white rounded-xl p-3 border"><p className="text-xs text-gray-500">ทั้งหมด</p><p className="text-xl font-bold">{stats.total}</p></div>
-          <div className="bg-yellow-50 rounded-xl p-3 border border-yellow-100"><p className="text-xs text-yellow-600">รอดำเนินการ</p><p className="text-xl font-bold text-yellow-700">{stats.pending}</p></div>
-          <div className="bg-blue-50 rounded-xl p-3 border border-blue-100"><p className="text-xs text-blue-600">กำลังดำเนินการ</p><p className="text-xl font-bold text-blue-700">{stats.in_progress}</p></div>
-          <div className="bg-green-50 rounded-xl p-3 border border-green-100"><p className="text-xs text-green-600">แก้ไขแล้ว</p><p className="text-xl font-bold text-green-700">{stats.resolved}</p></div>
-          <div className="bg-gray-50 rounded-xl p-3 border"><p className="text-xs text-gray-500">ปิด</p><p className="text-xl font-bold text-gray-700">{stats.closed}</p></div>
+          <div className="bg-white rounded-xl shadow-xl p-3 border-none"><p className="text-xs text-gray-500">ทั้งหมด</p><p className="text-xl font-bold">{stats.total}</p></div>
+          <div className="bg-yellow-50 rounded-xl shadow-xl p-3 border border-yellow-100"><p className="text-xs text-yellow-600">รอดำเนินการ</p><p className="text-xl font-bold text-yellow-700">{stats.pending}</p></div>
+          <div className="bg-blue-50 rounded-xl shadow-xl p-3 border border-blue-100"><p className="text-xs text-blue-600">กำลังดำเนินการ</p><p className="text-xl font-bold text-blue-700">{stats.in_progress}</p></div>
+          <div className="bg-green-50 rounded-xl shadow-xl p-3 border border-green-100"><p className="text-xs text-green-600">แก้ไขแล้ว</p><p className="text-xl font-bold text-green-700">{stats.resolved}</p></div>
+          <div className="bg-gray-50 rounded-xl shadow-xl p-3 border-none"><p className="text-xs text-gray-500">ปิด</p><p className="text-xl font-bold text-gray-700">{stats.closed}</p></div>
         </div>
 
         {/* Filters */}
@@ -243,7 +243,7 @@ export default function IssueReportManagement() {
               <div><p className="text-xs text-gray-500 mb-1">หมายเหตุ Admin</p>
                 <textarea value={editData.adminNote} onChange={(e) => setEditData({ ...editData, adminNote: e.target.value })} rows={3} className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="เพิ่มหมายเหตุ..." />
               </div>
-              <button onClick={handleUpdate} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center">{statusSubmit && <LoaderCircle className="animate-spin"/>}บันทึก</button>
+              <button onClick={handleUpdate} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center">{statusSubmit && <LoaderCircle className="animate-spin" />}บันทึก</button>
             </div>
           </div>
         </div>

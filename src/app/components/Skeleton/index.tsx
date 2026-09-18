@@ -252,7 +252,7 @@ export const SkeletonStatistics = () => (
         <SkeletonCard key={i} />
       ))}
     </div>
-    
+
     {/* Charts Section */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Bar Chart */}
@@ -263,7 +263,7 @@ export const SkeletonStatistics = () => (
         </div>
         <SkeletonChart height={300} type="bar" />
       </div>
-      
+
       {/* Pie Chart */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -283,7 +283,7 @@ export const SkeletonTeacherCards = () => (
       <div className="h-8 w-64 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 rounded animate-pulse" />
       <div className="h-4 w-48 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 rounded animate-pulse" />
     </div>
-    
+
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
@@ -297,7 +297,7 @@ export const SkeletonTeacherCards = () => (
         </div>
       ))}
     </div>
-    
+
     <div className="bg-gray-200 rounded-2xl p-8 animate-pulse">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -483,7 +483,7 @@ export const SkeletonIssueReportManagement = () => (
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl p-3 border animate-pulse">
+          <div key={i} className="bg-white rounded-xl p-3 border-none animate-pulse">
             <div className="h-3 w-16 bg-gray-200 rounded mb-2" />
             <div className="h-7 w-10 bg-gray-200 rounded" />
           </div>
@@ -500,7 +500,7 @@ export const SkeletonIssueReportManagement = () => (
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         {/* Table Header */}
-        <div className="bg-gray-50 border-b px-4 py-3 flex gap-4">
+        <div className="bg-gray-50 border-b-gray-200 px-4 py-3 flex gap-4">
           <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
           <div className="h-4 w-32 bg-gray-200 rounded animate-pulse flex-1" />
           <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
@@ -510,7 +510,7 @@ export const SkeletonIssueReportManagement = () => (
         </div>
         {/* Table Rows */}
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="px-4 py-3 border-b flex gap-4 items-center hover:bg-gray-50">
+          <div key={i} className="px-4 py-3 border-b-gray-200 flex gap-4 items-center hover:bg-gray-50">
             <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
             <div className="h-4 w-full bg-gray-200 rounded animate-pulse flex-1" />
             <div className="h-6 w-24 bg-gray-200 rounded-full animate-pulse" />
@@ -612,7 +612,7 @@ export const SkeletonLineUserManagement = () => (
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border">
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex-1 min-w-[200px] h-10 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="flex-1 min-w-50 h-10 bg-gray-100 rounded-lg animate-pulse" />
           <div className="h-10 w-32 bg-gray-100 rounded-lg animate-pulse" />
         </div>
       </div>
@@ -677,7 +677,7 @@ export const SkeletonEventManagement = () => (
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <div className="w-full min-w-[800px]">
+        <div className="w-full min-w-200">
           {/* Table Header */}
           <div className="bg-gray-100 flex">
             {Array.from({ length: 9 }).map((_, i) => (

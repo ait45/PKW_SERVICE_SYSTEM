@@ -307,11 +307,11 @@ function RetroactiveAttendance({ session }: { session: any }) {
 
   const dateLabel = selectedDate
     ? new Date(selectedDate).toLocaleDateString("th-TH", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     : "";
 
   if (initialLoading) return <SkeletonRetroactiveAttendance />;
@@ -438,7 +438,7 @@ function RetroactiveAttendance({ session }: { session: any }) {
         <div className="flex flex-wrap gap-3 items-end justify-between">
           {/* Search + Filter */}
           <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-50">
               <label className="text-xs text-gray-500 block mb-1">
                 ค้นหานักเรียน
               </label>
@@ -575,9 +575,8 @@ function RetroactiveAttendance({ session }: { session: any }) {
                     return (
                       <tr
                         key={row.studentId}
-                        className={`transition-colors hover:bg-gray-50 ${
-                          isModified ? "bg-amber-50/60" : ""
-                        }`}
+                        className={`transition-colors hover:bg-gray-50 ${isModified ? "bg-amber-50/60" : ""
+                          }`}
                       >
                         <td className="px-4 py-3">
                           <span className="font-mono text-[#009EA3] font-medium">
@@ -598,11 +597,10 @@ function RetroactiveAttendance({ session }: { session: any }) {
                               className={`w-2 h-2 rounded-full ${getStatusDot(row.status)} shrink-0`}
                             />
                             <select
-                              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium outline-none cursor-pointer transition-all border ${
-                                isModified
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium outline-none cursor-pointer transition-all border ${isModified
                                   ? "border-amber-400 ring-2 ring-amber-100"
                                   : "border-gray-200"
-                              } ${getStatusColor(row.status)}`}
+                                } ${getStatusColor(row.status)}`}
                               value={row.status}
                               onChange={(e) =>
                                 handleStatusChange(
@@ -671,11 +669,10 @@ function RetroactiveAttendance({ session }: { session: any }) {
                   )}
                   <button
                     onClick={() => setCurrentPage(page)}
-                    className={`min-w-[32px] py-1 rounded-md cursor-pointer transition-colors ${
-                      page === currentPage
+                    className={`min-w-8 py-1 rounded-md cursor-pointer transition-colors ${page === currentPage
                         ? "bg-amber-500 text-white font-medium shadow-sm"
                         : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>
@@ -697,11 +694,10 @@ function RetroactiveAttendance({ session }: { session: any }) {
           <button
             onClick={handleSubmit}
             disabled={dataUpdate.length === 0 || submitting}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${
-              isAdmin
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md ${isAdmin
                 ? "bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
                 : "bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-            }`}
+              }`}
           >
             {submitting ? (
               <LoaderCircle className="animate-spin" size={18} />
